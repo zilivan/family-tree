@@ -27,7 +27,7 @@ interface PersonCardProps {
 
 export default function PersonCard({
   person,
-  currentUserId,
+ // currentUserId,
   typePerson,
   handleNavigateUp,
   handleNavigateDown,
@@ -37,7 +37,7 @@ export default function PersonCard({
   const birthDate = person.birthDate ? new Date(person.birthDate) : null;
   const deathDate = person.deathDate ? new Date(person.deathDate) : null;
 
-  const canEdit = currentUserId && person.userId === currentUserId;
+  //const canEdit = currentUserId && person.userId === currentUserId;
 
   let zodiac = "";
   let chineseZodiac = "";

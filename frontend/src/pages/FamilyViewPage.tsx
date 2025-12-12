@@ -6,7 +6,7 @@ import PersonCard from "../components/person/PersonCard";
 import { mockFamilyNode } from "../mocks/familyData";
 
 export default function FamilyViewPage() {
-  const [family, setFamily] = useState(mockFamilyNode);
+  const [family] = useState(mockFamilyNode);
 
   // Логика навигации — временно заглушки
   const handleNavigateUp = () => {

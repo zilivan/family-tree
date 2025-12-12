@@ -20,7 +20,7 @@ export default function PhotoGallery({
   photoUrls,
   photoIds,
   editable = false,
-  personId,
+  //personId,
   onPhotoAdd,
   onPhotoRemove,
 }: PhotoGalleryProps) {

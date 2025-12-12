@@ -1,4 +1,4 @@
-import type { Person, Photo, Marriage } from "../types";
+import type { Person, Photo } from "../types";
 
 // Фото
 const photo1: Photo = { id: "ph1", url: "/public/grandFather.webp" };
@@ -21,7 +21,7 @@ const husband1: Person = {
   branch: "base",
   photoUrls: [photo1, photo4, photo3],
 };
-
+/*
 const husband2: Person = {
   id: "p6",
   firstName: "Сергей",
@@ -35,7 +35,7 @@ const husband2: Person = {
   branch: "base",
   photoUrls: [photo3],
 };
-
+*/
 const wife1: Person = {
   id: "p2",
   firstName: "Мария",
@@ -93,6 +93,7 @@ const child2: Person = {
 };
 
 // Браки
+/*
 const marriage1: Marriage = {
   id: "m1",
   husbandId: "p1",
@@ -110,7 +111,7 @@ const marriage2: Marriage = {
   endDate: null,
   place: "Санкт-Петербург",
 };
-
+*/
 export interface FamilyNode {
   husband: Person;
   wife: Person;
