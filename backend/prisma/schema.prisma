@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js" 
+  
+  // УБРАТЬ: output = "../src/generated/prisma" (временно)
+  
+}
+
+datasource db {
+  provider = "postgresql" 
+  
+}
+
+model Person {
+  id          String    @id @default(cuid())
+  firstName   String
+  lastName    String
+  birthDate   DateTime?
+  deathDate   DateTime?
+  gender      String?   // "male", "female", "other"
+  phone       String?
+  photoUrl    String?
+  parentId    String?
+  parent      Person?   @relation("Parent", fields: [parentId], references: [id])
+  children    Person[]  @relation("Parent")
+  marriages   Marriage[] @relation("MarriageToPersonAsHusband") // <-- Изменено
+  marriagesAsWife Marriage[] @relation("MarriageToPersonAsWife") // <-- Новое поле для браков как жена
+  photos      Photo[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Marriage {
+  id         String   @id @default(cuid())
+  husbandId  String
+  husband    Person   @relation("MarriageToPersonAsHusband", fields: [husbandId], references: [id]) // <-- Изменено
+  wifeId     String
+  wife       Person   @relation("MarriageToPersonAsWife", fields: [wifeId], references: [id]) // <-- Изменено
+  startDate  DateTime?
+  endDate    DateTime? // null — если брак не расторгнут
+  place      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([husbandId, wifeId]) // Один человек не может быть женат на другом дважды
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+model User {
+  id             String   @id @default(cuid())
+  email          String?  @unique
+  phone          String?  @unique
+  isAdmin        Boolean  @default(false)
+  isVerified     Boolean  @default(false)
+  verificationCode String? @unique
+  oneTimeToken   String?  @unique
+  verifiedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

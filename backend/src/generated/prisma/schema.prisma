@@ -1,0 +1,51 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library" // Только если Node.js >= 18
+  output     = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql" // Или другой выбранный провайдер
+}
+
+model Person {
+  id              String     @id @default(cuid())
+  firstName       String
+  lastName        String
+  birthDate       DateTime?
+  deathDate       DateTime?
+  gender          String? // "male", "female", "other"
+  phone           String?
+  photoUrl        String?
+  parentId        String?
+  parent          Person?    @relation("Parent", fields: [parentId], references: [id])
+  children        Person[]   @relation("Parent")
+  marriages       Marriage[] @relation("MarriageToPersonAsHusband") // <-- Изменено
+  marriagesAsWife Marriage[] @relation("MarriageToPersonAsWife") // <-- Новое поле для браков как жена
+  photos          Photo[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Marriage {
+  id        String    @id @default(cuid())
+  husbandId String
+  husband   Person    @relation("MarriageToPersonAsHusband", fields: [husbandId], references: [id]) // <-- Изменено
+  wifeId    String
+  wife      Person    @relation("MarriageToPersonAsWife", fields: [wifeId], references: [id]) // <-- Изменено
+  startDate DateTime?
+  endDate   DateTime? // null — если брак не расторгнут
+  place     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([husbandId, wifeId]) // Один человек не может быть женат на другом дважды
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}

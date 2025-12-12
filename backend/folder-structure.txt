@@ -1,0 +1,76 @@
+������� ����� ⮬� ���� ⮬
+��਩�� ����� ⮬�: 42E8-0498
+D:.
+�   .env
+�   .gitignore
+�   folder-structure.txt
+�   package-lock.json
+�   package.json
+�   prisma.config.ts
+�   tsconfig.json
+�   
+�
+�               
+����prisma
+�       prisma.config.ts
+�       schema.prisma
+�       
+����src
+�   �   copy
+�   �   db.ts
+�   �   server.ts
+�   �   test-email.ts
+�   �   
+�   ����generated
+�   �   ����prisma
+�   �       �   browser.ts
+�   �       �   client.d.ts
+�   �       �   client.js
+�   �       �   client.ts
+�   �       �   commonInputTypes.ts
+�   �       �   default.d.ts
+�   �       �   default.js
+�   �       �   edge.d.ts
+�   �       �   edge.js
+�   �       �   enums.ts
+�   �       �   index-browser.js
+�   �       �   index.d.ts
+�   �       �   index.js
+�   �       �   models.ts
+�   �       �   package.json
+�   �       �   query_compiler_bg.js
+�   �       �   query_compiler_bg.wasm
+�   �       �   query_compiler_bg.wasm-base64.js
+�   �       �   schema.prisma
+�   �       �   wasm-edge-light-loader.mjs
+�   �       �   wasm-worker-loader.mjs
+�   �       �   
+�   �       ����internal
+�   �       �       class.ts
+�   �       �       prismaNamespace.ts
+�   �       �       prismaNamespaceBrowser.ts
+�   �       �       
+�   �       ����models
+�   �       �       Marriage.ts
+�   �       �       Person.ts
+�   �       �       Photo.ts
+�   �       �       
+�   �       ����runtime
+�   �               client.d.ts
+�   �               client.js
+�   �               index-browser.d.ts
+�   �               index-browser.js
+�   �               wasm-compiler-edge.js
+�   �               
+�   ����middleware
+�   �       auth.ts
+�   �       
+�   ����routes
+�   �       auth.ts
+�   �       index.ts
+�   �       persons.ts
+�   �       
+�   ����utils
+�           email.ts
+�           
+����uploads
