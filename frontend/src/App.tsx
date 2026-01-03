@@ -1,17 +1,46 @@
 // src/App.tsx
 import { Routes, Route } from "react-router-dom";
+import {AuthProvider} from "./contexts/AuthContext";
 import FamilyViewPage from "./pages/FamilyViewPage";
 import PersonPage from "./pages/PersonPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/" element={<FamilyViewPage />} />
-      <Route path="/person/:id" element={<PersonPage />} />
-    </Routes>
+    <AuthProvider>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+               <Index/>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/person/:id" element={<PersonPage />} />
+            <Route path="/tree" element={<FamilyViewPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
   );
 }
+
+
+
+
+/*
+ <Route path="/login" element={<LoginPage />} />
+       <Route element={<ProtectedRoute />}>
+      <Route path="/register" element={<RegisterPage />} />
+       <Route path="/tree" element={<FamilyViewPage />} />
+      <Route path="/" element={<Index />} />
+      <Route path="/person/:id" element={<PersonPage />} />
+       </Route>
+*/

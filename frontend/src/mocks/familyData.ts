@@ -1,17 +1,21 @@
 import type { Person, Photo } from "../types";
 
 // Фото
-const photo1: Photo = { id: "ph1", url: "/public/grandFather.webp" };
-const photo2: Photo = { id: "ph2", url: "/public/girl.webp" };
-const photo3: Photo = { id: "ph3", url: "/public/guy.webp" };
-const photo4: Photo = { id: "ph4", url: "/public/man.webp" };
-const photo5: Photo = { id: "ph5", url: "/public/women.webp" };
+const photo1: Photo = {
+  id: "ph1",
+  url: "/family-tree/assets/grandFather.webp",
+};
+const photo2: Photo = { id: "ph2", url: "/family-tree/assets/girl.webp" };
+const photo3: Photo = { id: "ph3", url: "/family-tree/assets/guy.webp" };
+const photo4: Photo = { id: "ph4", url: "/family-tree/assets/man.webp" };
+const photo5: Photo = { id: "ph5", url: "/family-tree/assets/women.webp" };
 
 // Персоны
 const husband1: Person = {
   id: "p1",
   firstName: "Иван",
-  lastName: "Петров",
+  lastName: "Сидоров",
+  patronynicName: "Петрович",
   birthDate: "1980-03-15T00:00:00.000Z",
   deathDate: null,
   gender: "male",
@@ -26,6 +30,7 @@ const husband2: Person = {
   id: "p6",
   firstName: "Сергей",
   lastName: "Иванов",
+  patronynicName: "Петрович",
   birthDate: "1990-03-15T00:00:00.000Z",
   deathDate: null,
   gender: "male",
@@ -40,6 +45,7 @@ const wife1: Person = {
   id: "p2",
   firstName: "Мария",
   lastName: "Иванова",
+  patronynicName: "Петровна",
   birthDate: "1982-07-22T00:00:00.000Z",
   deathDate: null,
   gender: "female",
@@ -54,6 +60,7 @@ const wife2: Person = {
   id: "p5",
   firstName: "Елена",
   lastName: "Сидорова",
+  patronynicName: "Дмитреевна",
   birthDate: "1985-11-03T00:00:00.000Z",
   deathDate: null,
   gender: "female",
@@ -68,20 +75,22 @@ const child1: Person = {
   id: "p3",
   firstName: "Анна",
   lastName: "Иванова",
+  patronynicName: "Сергеевна",
   birthDate: "2005-11-30T00:00:00.000Z",
-  deathDate: null,
+  deathDate: "2015-10-12T00:00:00.000Z",
   gender: "female",
   phone: null,
   parentId: "p1", // её отец — Иван
   userId: null,
   branch: "base",
-  photoUrls: [photo3],
+  photoUrls: [photo3, photo4, photo3],
 };
 
 const child2: Person = {
   id: "p4",
   firstName: "Сергей",
   lastName: "Иванов",
+  patronynicName: "Сергеевич",
   birthDate: "2008-02-14T00:00:00.000Z",
   deathDate: null,
   gender: "male",

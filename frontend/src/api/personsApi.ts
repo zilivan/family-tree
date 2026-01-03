@@ -13,6 +13,14 @@ export interface Person {
   branch: string;
   photos: { id: string; url: string }[];
 }
+export interface FamilyResponse {
+  currentPerson: Person;
+  husband: Person | null;
+  wife: Person | null;
+  children: Person[];
+  branch: string;
+}
+
 
 export const personsApi = createApi({
   reducerPath: "personsApi",

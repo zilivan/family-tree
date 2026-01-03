@@ -5,6 +5,7 @@ export type Person = {
   firstName: string;
   lastName: string;
   birthDate: string | null; // ISO string или null
+  patronynicName: string | null; // ISO string или null
   deathDate: string | null; // ISO string или null
   gender: "male" | "female" | "other" | null;
   phone: string | null;

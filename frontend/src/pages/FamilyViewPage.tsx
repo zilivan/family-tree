@@ -24,9 +24,6 @@ export default function FamilyViewPage() {
     // TODO: логика смены wife/husband при нескольких браках
   };
 
-  console.log(family.otherPartnersWife);
-  console.log(family.otherPartnersHusband);
-
   return (
     <Stack
       p="md"
@@ -49,18 +46,21 @@ export default function FamilyViewPage() {
       </div>
 
       {/* Супруги */}
+       <ScrollArea style={{ height: 1000 }}> 
+      <div >
+    
       <Group
         justify="center"
-        gap="ms"
+       
         style={{
           flexWrap: "nowrap",
           display: "flex",
-          border: "2px, green, solid",
         }}
       >
         {family.otherPartnersHusband.length !== 0 && (
-          <ActionIcon onClick={() => handleNavigatePartner("left")}>
-            <IconArrowLeft />
+          <ActionIcon style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
+          color :'rgba(90, 85, 85, 1)' , height: "200px", border: "1px solid rgba(201, 186, 186, 1) "}} onClick={() => handleNavigatePartner("left")}>
+            <IconArrowLeft  />
           </ActionIcon>
         )}
 
@@ -81,19 +81,24 @@ export default function FamilyViewPage() {
         )}
 
         {family.otherPartnersWife.length !== 0 && (
-          <ActionIcon onClick={() => handleNavigatePartner("right")}>
+          <ActionIcon  style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
+          color :'rgba(90, 85, 85, 1)' ,border: "1px solid rgba(201, 186, 186, 1) " }} onClick={() => handleNavigatePartner("right")}>
             <IconArrowRight />
           </ActionIcon>
         )}
+        
         <></>
       </Group>
-
+  </div>
       {/* Дети */}
       <div style={{ marginTop: "1rem", width: "100%" }}>
-        <ScrollArea style={{ height: 300 }}>
+      { /* <ScrollArea style={{ height: 300 }}>*/}
           <Stack gap="md" style={{ alignItems: "center" }}>
             {family.children.map((child) => (
-              <div key={child.id} style={{ position: "relative" }}>
+              <div
+                key={child.id}
+                style={{ position: "relative", marginTop: "10px" }}
+              >
                 <PersonCard
                   person={child}
                   typePerson="child"
@@ -102,8 +107,12 @@ export default function FamilyViewPage() {
               </div>
             ))}
           </Stack>
-        </ScrollArea>
+
+      
+    
       </div>
+      </ScrollArea >
+      
     </Stack>
   );
 }

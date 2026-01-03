@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Image, ActionIcon, Modal } from "@mantine/core";
-import {
-  IconTrash,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { useState, useEffect,  useRef } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { Image } from "@mantine/core";
+import PhotoModal from "../PhotoModal";
+
 import styles from "./PhotoGallery.module.css";
 
 interface PhotoGalleryProps {
@@ -12,43 +10,45 @@ interface PhotoGalleryProps {
   photoIds: string[]; // ← нужно для удаления по ID
   editable?: boolean;
   personId: string;
+  borderColor: string;
   onPhotoAdd?: (file: File) => Promise<void>;
   onPhotoRemove?: (photoId: string) => Promise<void>;
 }
 
 export default function PhotoGallery({
   photoUrls,
-  photoIds,
+ // photoIds,
   editable = false,
+  borderColor,
   //personId,
   onPhotoAdd,
-  onPhotoRemove,
+  //onPhotoRemove,
 }: PhotoGalleryProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    // Отключаем drag, если нажатие на элемент с классом 'embla__slide__img'
+  });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+ 
+
+ // const [currentIndex, setCurrentIndex] = useState(0);
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasPhotos = photoUrls.length > 0;
 
-  const next = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % photoUrls.length);
-  }, [photoUrls.length]);
-
-  const prev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + photoUrls.length) % photoUrls.length);
-  }, [photoUrls.length]);
-
   const handleDoubleClick = (url: string) => {
     setFullscreenPhoto(url);
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
+  /*const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onPhotoRemove || photoUrls.length <= 1) return;
 
     const photoId = photoIds[currentIndex];
     onPhotoRemove(photoId);
-  };
+  };*/
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,10 +63,25 @@ export default function PhotoGallery({
   };
 
   useEffect(() => {
+    if (!emblaApi) return;
+
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
+    };
+
+    emblaApi.on("select", onSelect);
+    onSelect(); // инициализация
+
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi]);
+
+ /* useEffect(() => {
     if (photoUrls.length > 0) {
       setCurrentIndex(0);
     }
-  }, [photoUrls.length]);
+  }, [photoUrls.length]);*/
 
   if (!hasPhotos) {
     return (
@@ -79,7 +94,7 @@ export default function PhotoGallery({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#999",
+          color: "rgb(#999)",
           fontSize: "12px",
         }}
       >
@@ -88,70 +103,76 @@ export default function PhotoGallery({
     );
   }
 
-  const currentPhoto = photoUrls[currentIndex];
+  
 
   return (
     <>
       <div style={{ position: "relative", display: "inline-block" }}>
-        <Image
-          src={currentPhoto}
-          fallbackSrc="/placeholder-person.jpg" // ← лежит в /public/
-          alt={`Фото ${currentIndex + 1} из ${photoUrls.length}`}
-          width={120}
-          height={120}
-          fit="cover"
-          radius="sm"
-          onDoubleClick={() => handleDoubleClick(currentPhoto)}
-          style={{ cursor: "zoom-in" }}
-        />
+        <div
+          ref={emblaRef}
+          style={{
+            overflow: "hidden",
+            borderRadius: "15px",
 
-        {editable && photoUrls.length > 1 && (
-          <ActionIcon
-            color="red"
-            size="xs"
+            border: `5px solid rgba(${borderColor} , 0.4 `,
+
+            boxShadow: `0px 0px 20px rgba(${borderColor},  0.8)`,
+          }}
+        >
+          <div style={{ display: "flex" }}>
+            {photoUrls.map((url, index) => (
+              <div
+                key={index}
+                style={{
+                  flex: "0 0 100%",
+                  position: "relative",
+                  minWidth: "0",
+                }}
+              >
+                <Image
+                  src={url}
+                  fallbackSrc="/assets/placeholder-person.jpg" // ← лежит в /public/
+                  alt={`нет фото`}
+                  height={300}
+                  fit="cover"
+                  onClick={() => handleDoubleClick(url)}
+                  style={{ cursor: "zoom-in", width: "100%", height: "100%" }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Точечная индикация */}
+        {photoUrls.length > 1 && (
+          <div
             style={{
               position: "absolute",
-              top: 4,
-              right: 4,
-              zIndex: 10,
+              bottom: 12,
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              gap: 6,
+              zIndex: 20,
             }}
-            onClick={handleRemove}
           >
-            <IconTrash size={12} />
-          </ActionIcon>
-        )}
-
-        {photoUrls.length > 1 && (
-          <>
-            <ActionIcon
-              variant="transparent"
-              color="gray"
-              size="sm"
-              onClick={prev}
-              style={{
-                position: "absolute",
-                left: 4,
-                top: "50%",
-                transform: "translateY(-50%)",
-              }}
-            >
-              <IconChevronLeft size={16} />
-            </ActionIcon>
-            <ActionIcon
-              variant="transparent"
-              color="gray"
-              size="sm"
-              onClick={next}
-              style={{
-                position: "absolute",
-                right: 4,
-                top: "50%",
-                transform: "translateY(-50%)",
-              }}
-            >
-              <IconChevronRight size={16} />
-            </ActionIcon>
-          </>
+            {photoUrls.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  border: "none",
+                  backgroundColor:
+                    index === selectedIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+                aria-label={`Перейти к фото ${index + 1}`}
+              />
+            ))}
+          </div>
         )}
 
         {editable && photoUrls.length < 5 && (
@@ -202,26 +223,11 @@ export default function PhotoGallery({
         )}
       </div>
 
-      <Modal
-        opened={!!fullscreenPhoto}
+      <PhotoModal
+        fullscreenPhoto={fullscreenPhoto}
         onClose={() => setFullscreenPhoto(null)}
-        withCloseButton={false}
-        fullScreen
-      >
-        {fullscreenPhoto && (
-          <img
-            src={fullscreenPhoto}
-            alt="Полный экран"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              cursor: "zoom-out",
-            }}
-            onClick={() => setFullscreenPhoto(null)}
-          />
-        )}
-      </Modal>
+        backColor={borderColor}
+      />
     </>
   );
 }
