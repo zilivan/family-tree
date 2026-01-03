@@ -21,7 +21,6 @@ export interface FamilyResponse {
   branch: string;
 }
 
-
 export const personsApi = createApi({
   reducerPath: "personsApi",
   baseQuery: fetchBaseQuery({

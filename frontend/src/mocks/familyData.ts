@@ -1,29 +1,46 @@
 import type { Person, Photo } from "../types";
 
 // Фото
-const photo1: Photo = {
-  id: "ph1",
-  url: "/family-tree/assets/grandFather.webp",
-};
-const photo2: Photo = { id: "ph2", url: "/family-tree/assets/girl.webp" };
-const photo3: Photo = { id: "ph3", url: "/family-tree/assets/guy.webp" };
-const photo4: Photo = { id: "ph4", url: "/family-tree/assets/man.webp" };
-const photo5: Photo = { id: "ph5", url: "/family-tree/assets/women.webp" };
+
+const photo_p1_1: Photo = { id: "ph11", url: "/family-tree/assets/p1-1.jpg" };
+const photo_p1_2: Photo = { id: "ph12", url: "/family-tree/assets/p1-2.jpg" };
+const photo_p1_3: Photo = { id: "ph13", url: "/family-tree/assets/p1-3.jpg" };
+
+const photo_p2_1: Photo = { id: "ph21", url: "/family-tree/assets/p2-1.jpg" };
+const photo_p2_2: Photo = { id: "ph22", url: "/family-tree/assets/p2-2.jpg" };
+
+const photo_p3_1: Photo = { id: "ph31", url: "/family-tree/assets/p3-1.jpg" };
+const photo_p3_2: Photo = { id: "ph32", url: "/family-tree/assets/p3-2.jpg" };
+const photo_p3_3: Photo = { id: "ph33", url: "/family-tree/assets/p3-3.jpg" };
+
+const photo_p4_1: Photo = { id: "ph41", url: "/family-tree/assets/p4-1.jpg" };
+const photo_p4_2: Photo = { id: "ph42", url: "/family-tree/assets/p4-2.jpg" };
+const photo_p4_3: Photo = { id: "ph43", url: "/family-tree/assets/p4-3.jpg" };
+
+const photo_p5_1: Photo = { id: "ph51", url: "/family-tree/assets/p5-1.jpg" };
+const photo_p5_2: Photo = { id: "ph52", url: "/family-tree/assets/p5-2.jpg" };
+const photo_p5_3: Photo = { id: "ph53", url: "/family-tree/assets/p5-3.jpg" };
+const photo_p5_4: Photo = { id: "ph54", url: "/family-tree/assets/p5-4.jpg" };
+
+const photo_p6_1: Photo = { id: "ph61", url: "/family-tree/assets/p6-1.jpg" };
+const photo_p6_2: Photo = { id: "ph62", url: "/family-tree/assets/p6-2.jpg" };
+const photo_p6_3: Photo = { id: "ph63", url: "/family-tree/assets/p6-3.jpg" };
 
 // Персоны
 const husband1: Person = {
   id: "p1",
   firstName: "Иван",
-  lastName: "Сидоров",
-  patronynicName: "Петрович",
-  birthDate: "1980-03-15T00:00:00.000Z",
-  deathDate: null,
+  lastName: "Демидович",
+  parentLastName:null,
+  patronynicName: "Семенович",
+  birthDate: "1911-01-01T00:00:00.000Z",
+  deathDate: "1992-01-01T00:00:00.000Z",
   gender: "male",
-  phone: "+79991234567",
+  phone: null,
   parentId: "p10", // его родители — где-то выше
   userId: "u1", // владелец — пользователь u1
   branch: "base",
-  photoUrls: [photo1, photo4, photo3],
+  photoUrls: [photo_p1_1, photo_p1_2, photo_p1_3],
 };
 /*
 const husband2: Person = {
@@ -43,21 +60,22 @@ const husband2: Person = {
 */
 const wife1: Person = {
   id: "p2",
-  firstName: "Мария",
-  lastName: "Иванова",
-  patronynicName: "Петровна",
-  birthDate: "1982-07-22T00:00:00.000Z",
-  deathDate: null,
+  firstName: "Ольга",
+  lastName:"Демидович",
+  parentLastName:"Калько",
+  patronynicName: "Константиновна",
+  birthDate: "1915-01-01T00:00:00.000Z",
+  deathDate: "2001-01-01T00:00:00.000Z",
   gender: "female",
-  phone: "+79999876543",
+  phone: null,
   parentId: null,
   userId: null, // не привязана к пользователю
   branch: "base",
-  photoUrls: [photo2, photo5],
+  photoUrls: [photo_p2_1, photo_p2_2],
 };
-
+/*
 const wife2: Person = {
-  id: "p5",
+  id: "p10",
   firstName: "Елена",
   lastName: "Сидорова",
   patronynicName: "Дмитреевна",
@@ -69,36 +87,68 @@ const wife2: Person = {
   userId: null,
   branch: "edit",
   photoUrls: [],
-};
+};*/
 
 const child1: Person = {
   id: "p3",
-  firstName: "Анна",
-  lastName: "Иванова",
-  patronynicName: "Сергеевна",
-  birthDate: "2005-11-30T00:00:00.000Z",
-  deathDate: "2015-10-12T00:00:00.000Z",
-  gender: "female",
+  firstName: "Константин",
+  lastName: "Демидович",
+   parentLastName:null,
+  patronynicName: "Иванович",
+  birthDate: "1951-01-01T00:00:00.000Z",
+  deathDate: null,
+  gender: "male",
   phone: null,
   parentId: "p1", // её отец — Иван
   userId: null,
   branch: "base",
-  photoUrls: [photo3, photo4, photo3],
+  photoUrls: [photo_p3_1, photo_p3_2, photo_p3_3],
 };
 
 const child2: Person = {
   id: "p4",
-  firstName: "Сергей",
-  lastName: "Иванов",
-  patronynicName: "Сергеевич",
-  birthDate: "2008-02-14T00:00:00.000Z",
-  deathDate: null,
+  firstName: "Иван",
+  lastName: "Демидович",
+  parentLastName:null,
+  patronynicName: "Иванович",
+  birthDate: "1938-01-01T00:00:00.000Z",
+  deathDate: "1968-01-01T00:00:00.000Z",
   gender: "male",
   phone: null,
   parentId: "p1",
   userId: null,
   branch: "base",
-  photoUrls: [photo4],
+  photoUrls: [photo_p4_1, photo_p4_2, photo_p4_3],
+};
+const child3: Person = {
+  id: "p5",
+  firstName: "Лариса",
+  lastName: "Жданок",
+  parentLastName:"Демидович",
+  patronynicName: "Ивановна",
+  birthDate: "1939-01-01T00:00:00.000Z",
+  deathDate: "2004-10-23T00:00:00.000Z",
+  gender: "female",
+  phone: null,
+  parentId: "p1",
+  userId: null,
+  branch: "base",
+  photoUrls: [photo_p5_1, photo_p5_2, photo_p5_3, photo_p5_4],
+};
+const child4: Person = {
+  id: "p6",
+  firstName: "Раиса",
+  lastName: "Павлова",
+  parentLastName:"Демидович",
+  patronynicName: "Ивановна",
+  birthDate: "1941-11-07T00:00:00.000Z",
+  deathDate: null,
+  gender: "male",
+  phone: "+375299228668",
+  parentId: "p1",
+  userId: null,
+  branch: "base",
+  photoUrls: [photo_p6_1, photo_p6_2, photo_p6_3],
 };
 
 // Браки
@@ -133,8 +183,8 @@ export interface FamilyNode {
 export const mockFamilyNode: FamilyNode = {
   husband: husband1,
   wife: wife1,
-  otherPartnersHusband: [wife2], // Иван был женат ещё на Елене
+  otherPartnersHusband: [], // Иван был женат ещё на Елене
   otherPartnersWife: [],
-  children: [child1, child2],
+  children: [child1, child2, child3, child4],
   parentId: "p10", // ID семьи родителей Ивана
 };

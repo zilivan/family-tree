@@ -7,8 +7,6 @@ import { store } from "./store";
 import App from "./App";
 
 const theme = createTheme({
-
-
   /* Настройки темы по желанию */
 });
 

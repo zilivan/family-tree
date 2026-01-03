@@ -1,8 +1,8 @@
 // src/store/index.ts
-import { configureStore } from '@reduxjs/toolkit';
-import { authApi } from '../api/authApi';
-import { personsApi } from '../api/personsApi';
-import { photosApi } from '../api/photosApi';
+import { configureStore } from "@reduxjs/toolkit";
+import { authApi } from "../api/authApi";
+import { personsApi } from "../api/personsApi";
+import { photosApi } from "../api/photosApi";
 
 export const store = configureStore({
   reducer: {

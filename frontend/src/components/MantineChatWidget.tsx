@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Paper,
   TextInput,
@@ -12,8 +12,8 @@ import {
   ScrollArea,
   Loader,
   Badge,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 interface Message {
   id: string;
@@ -24,7 +24,6 @@ interface Message {
 }
 
 interface MantineChatWidgetProps {
-  
   currentUser?: {
     id: string;
     name: string;
@@ -33,8 +32,8 @@ interface MantineChatWidgetProps {
 }
 
 const generateGuestName = (): string => {
-  const adjectives = ['Веселый', 'Умный', 'Быстрый', 'Храбрый', 'Мудрый'];
-  const nouns = ['Гость', 'Путник', 'Странник', 'Посетитель', 'Друг'];
+  const adjectives = ["Веселый", "Умный", "Быстрый", "Храбрый", "Мудрый"];
+  const nouns = ["Гость", "Путник", "Странник", "Посетитель", "Друг"];
   const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
   const randomNum = Math.floor(Math.random() * 1000);
@@ -42,46 +41,44 @@ const generateGuestName = (): string => {
 };
 
 const getOrCreateGuestName = (): string => {
-  const stored = localStorage.getItem('chat_guest_name');
+  const stored = localStorage.getItem("chat_guest_name");
   if (stored) return stored;
   const newName = generateGuestName();
-  localStorage.setItem('chat_guest_name', newName);
+  localStorage.setItem("chat_guest_name", newName);
   return newName;
 };
 
 export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
-  
- currentUser 
-
+  currentUser,
 }) => {
   const [isOpen, { toggle }] = useDisclosure(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const user = currentUser || {
-    id: 'guest-' + getOrCreateGuestName(),
+    id: "guest-" + getOrCreateGuestName(),
     name: getOrCreateGuestName(),
     isGuest: true,
   };
-const apiUrl = 3000;
+  const apiUrl = 3000;
   // Fetch messages from API
   const fetchMessages = async () => {
     if (!apiUrl) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch(`${apiUrl}/messages`);
-      if (!response.ok) throw new Error('Ошибка загрузки сообщений');
+      if (!response.ok) throw new Error("Ошибка загрузки сообщений");
       const data = await response.json();
       setMessages(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка сети');
+      setError(err instanceof Error ? err.message : "Ошибка сети");
     } finally {
       setIsLoading(false);
     }
@@ -96,9 +93,9 @@ const apiUrl = 3000;
 
     try {
       const response = await fetch(`${apiUrl}/messages`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: newMessage.trim(),
@@ -107,48 +104,48 @@ const apiUrl = 3000;
         }),
       });
 
-      if (!response.ok) throw new Error('Ошибка отправки сообщения');
-      
+      if (!response.ok) throw new Error("Ошибка отправки сообщения");
+
       const savedMessage = await response.json();
-      setMessages(prev => [...prev, savedMessage]);
-      setNewMessage('');
+      setMessages((prev) => [...prev, savedMessage]);
+      setNewMessage("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отправки');
+      setError(err instanceof Error ? err.message : "Ошибка отправки");
     } finally {
       setIsSending(false);
     }
   };
 
   // Poll for new messages
-  useEffect(() => {
+  /*useEffect(() => {
     if (isOpen && apiUrl) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, apiUrl]);
+  }, [isOpen, apiUrl]);*/
 
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -165,10 +162,10 @@ const apiUrl = 3000;
         variant="filled"
         color="blue"
         style={{
-          position: 'fixed',
+          position: "fixed",
           bottom: 24,
           right: 24,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
           zIndex: 1000,
         }}
       >
@@ -193,23 +190,23 @@ const apiUrl = 3000;
       shadow="xl"
       radius="lg"
       style={{
-        position: 'fixed',
+        position: "fixed",
         bottom: 24,
         right: 24,
         width: 380,
         height: 520,
-        display: 'flex',
-        flexDirection: 'column',
+        display: "flex",
+        flexDirection: "column",
         zIndex: 1000,
-        overflow: 'hidden',
+        overflow: "hidden",
       }}
     >
       {/* Header */}
       <Box
         style={{
-          background: 'linear-gradient(135deg, #228be6, #15aabf)',
-          padding: '16px',
-          color: 'white',
+          background: "linear-gradient(135deg, #228be6, #15aabf)",
+          padding: "16px",
+          color: "white",
         }}
       >
         <Group justify="space-between">
@@ -218,15 +215,10 @@ const apiUrl = 3000;
               Чат
             </Text>
             <Badge size="sm" variant="light" color="white">
-              {user.isGuest ? 'Гость' : 'Авторизован'}
+              {user.isGuest ? "Гость" : "Авторизован"}
             </Badge>
           </Group>
-          <ActionIcon
-            onClick={toggle}
-            variant="subtle"
-            color="white"
-            size="lg"
-          >
+          <ActionIcon onClick={toggle} variant="subtle" color="white" size="lg">
             <svg
               width="20"
               height="20"
@@ -246,7 +238,7 @@ const apiUrl = 3000;
 
       {/* Messages */}
       <ScrollArea
-        style={{ flex: 1, padding: '12px' }}
+        style={{ flex: 1, padding: "12px" }}
         viewportRef={scrollAreaRef}
       >
         {!apiUrl ? (
@@ -267,12 +259,7 @@ const apiUrl = 3000;
             <Text c="red" size="sm">
               {error}
             </Text>
-            <Button
-              size="xs"
-              variant="light"
-              mt="sm"
-              onClick={fetchMessages}
-            >
+            <Button size="xs" variant="light" mt="sm" onClick={fetchMessages}>
               Повторить
             </Button>
           </Box>
@@ -290,29 +277,29 @@ const apiUrl = 3000;
                 <Group
                   key={message.id}
                   align="flex-start"
-                  justify={isOwn ? 'flex-end' : 'flex-start'}
+                  justify={isOwn ? "flex-end" : "flex-start"}
                   gap="xs"
                 >
                   {!isOwn && (
                     <Avatar
                       size="sm"
                       radius="xl"
-                      color={message.isGuest ? 'gray' : 'blue'}
+                      color={message.isGuest ? "gray" : "blue"}
                     >
                       {getInitials(message.userName)}
                     </Avatar>
                   )}
                   <Box
                     style={{
-                      maxWidth: '75%',
-                      padding: '10px 14px',
+                      maxWidth: "75%",
+                      padding: "10px 14px",
                       borderRadius: isOwn
-                        ? '16px 16px 4px 16px'
-                        : '16px 16px 16px 4px',
+                        ? "16px 16px 4px 16px"
+                        : "16px 16px 16px 4px",
                       background: isOwn
-                        ? 'linear-gradient(135deg, #228be6, #15aabf)'
-                        : '#f1f3f5',
-                      color: isOwn ? 'white' : 'inherit',
+                        ? "linear-gradient(135deg, #228be6, #15aabf)"
+                        : "#f1f3f5",
+                      color: isOwn ? "white" : "inherit",
                     }}
                   >
                     {!isOwn && (
@@ -326,12 +313,7 @@ const apiUrl = 3000;
                       </Text>
                     )}
                     <Text size="sm">{message.text}</Text>
-                    <Text
-                      size="xs"
-                      ta="right"
-                      mt={4}
-                      opacity={0.7}
-                    >
+                    <Text size="xs" ta="right" mt={4} opacity={0.7}>
                       {formatTime(message.createdAt)}
                     </Text>
                   </Box>
@@ -350,9 +332,9 @@ const apiUrl = 3000;
       {/* Input */}
       <Box
         style={{
-          padding: '12px 16px',
-          borderTop: '1px solid #e9ecef',
-          background: '#f8f9fa',
+          padding: "12px 16px",
+          borderTop: "1px solid #e9ecef",
+          background: "#f8f9fa",
         }}
       >
         <Group gap="sm">
@@ -366,7 +348,7 @@ const apiUrl = 3000;
             radius="xl"
             styles={{
               input: {
-                border: '1px solid #dee2e6',
+                border: "1px solid #dee2e6",
               },
             }}
           />

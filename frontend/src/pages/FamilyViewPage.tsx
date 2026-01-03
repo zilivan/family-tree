@@ -46,53 +46,64 @@ export default function FamilyViewPage() {
       </div>
 
       {/* Супруги */}
-       <ScrollArea style={{ height: 1000 }}> 
-      <div >
-    
-      <Group
-        justify="center"
-       
-        style={{
-          flexWrap: "nowrap",
-          display: "flex",
-        }}
-      >
-        {family.otherPartnersHusband.length !== 0 && (
-          <ActionIcon style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
-          color :'rgba(90, 85, 85, 1)' , height: "200px", border: "1px solid rgba(201, 186, 186, 1) "}} onClick={() => handleNavigatePartner("left")}>
-            <IconArrowLeft  />
-          </ActionIcon>
-        )}
+      <ScrollArea style={{ height: 1000 }}>
+        <div>
+          <Group
+            justify="center"
+            style={{
+              flexWrap: "nowrap",
+              display: "flex",
+            }}
+          >
+            {family.otherPartnersHusband.length !== 0 && (
+              <ActionIcon
+                style={{
+                  backgroundColor: "rgba(235, 223, 223, 1)",
+                  color: "rgba(90, 85, 85, 1)",
+                  height: "200px",
+                  border: "1px solid rgba(201, 186, 186, 1) ",
+                }}
+                onClick={() => handleNavigatePartner("left")}
+              >
+                <IconArrowLeft />
+              </ActionIcon>
+            )}
 
-        {family.husband && (
-          <PersonCard
-            person={family.husband}
-            handleNavigateUp={handleNavigateUp}
-            typePerson="parent"
-          />
-        )}
+            {family.husband && (
+              <PersonCard
+                person={family.husband}
+                handleNavigateUp={handleNavigateUp}
+                typePerson="parent"
+              />
+            )}
 
-        {family.wife && (
-          <PersonCard
-            person={family.wife}
-            handleNavigateUp={handleNavigateUp}
-            typePerson="parent"
-          />
-        )}
+            {family.wife && (
+              <PersonCard
+                person={family.wife}
+                handleNavigateUp={handleNavigateUp}
+                typePerson="parent"
+              />
+            )}
 
-        {family.otherPartnersWife.length !== 0 && (
-          <ActionIcon  style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
-          color :'rgba(90, 85, 85, 1)' ,border: "1px solid rgba(201, 186, 186, 1) " }} onClick={() => handleNavigatePartner("right")}>
-            <IconArrowRight />
-          </ActionIcon>
-        )}
-        
-        <></>
-      </Group>
-  </div>
-      {/* Дети */}
-      <div style={{ marginTop: "1rem", width: "100%" }}>
-      { /* <ScrollArea style={{ height: 300 }}>*/}
+            {family.otherPartnersWife.length !== 0 && (
+              <ActionIcon
+                style={{
+                  backgroundColor: "rgba(235, 223, 223, 1)",
+                  color: "rgba(90, 85, 85, 1)",
+                  border: "1px solid rgba(201, 186, 186, 1) ",
+                }}
+                onClick={() => handleNavigatePartner("right")}
+              >
+                <IconArrowRight />
+              </ActionIcon>
+            )}
+
+            <></>
+          </Group>
+        </div>
+        {/* Дети */}
+        <div style={{ marginTop: "1rem", width: "100%" }}>
+          {/* <ScrollArea style={{ height: 300 }}>*/}
           <Stack gap="md" style={{ alignItems: "center" }}>
             {family.children.map((child) => (
               <div
@@ -107,12 +118,8 @@ export default function FamilyViewPage() {
               </div>
             ))}
           </Stack>
-
-      
-    
-      </div>
-      </ScrollArea >
-      
+        </div>
+      </ScrollArea>
     </Stack>
   );
 }

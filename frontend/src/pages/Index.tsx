@@ -1,20 +1,14 @@
-import { useState } from "react";
 import { MantineProvider } from "../provider/MantineProvider";
 import { MantineChatWidget } from "../components/MantineChatWidget";
-import {  Button, Box, Text, Stack, Paper, Group } from "@mantine/core";
+import { Button, Box, Text, Stack, Paper, Group } from "@mantine/core";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import FamilyViewPage from "./FamilyViewPage";
 
 const Index = () => {
-  
-  
   const { user, logout } = useAuth();
-  
+
   const navigate = useNavigate();
-
-
-  
 
   const handleLogout = () => {
     logout();
@@ -29,23 +23,26 @@ const Index = () => {
             <Group justify="space-between" align="center">
               <Box>
                 <Text size="xl" fw={700}>
-                  Мини-чат 
+                  Мини-чат
                 </Text>
                 <Text size="sm" c="dimmed">
-                  Привет, {user?.name || 'Пользователь'}!
+                  Привет, {user?.name || "Пользователь"}!
                 </Text>
               </Box>
-              <Button variant="subtle" color="red" size="xs" onClick={handleLogout}>
+              <Button
+                variant="subtle"
+                color="red"
+                size="xs"
+                onClick={handleLogout}
+              >
                 Выйти
               </Button>
             </Group>
-
           </Stack>
         </Paper>
 
-        <MantineChatWidget/>
-           <FamilyViewPage />
-
+        <MantineChatWidget />
+        <FamilyViewPage />
       </div>
     </MantineProvider>
   );

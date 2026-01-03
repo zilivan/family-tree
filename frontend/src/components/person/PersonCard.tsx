@@ -13,7 +13,6 @@ import PhotoGallery from "../ui/PhotoGallery";
 import {
   calculateZodiacSign,
   calculateChineseZodiac,
-
 } from "../../utils/astrology";
 import type { Person } from "../../types";
 
@@ -62,6 +61,7 @@ export default function PersonCard({
   }
 
   const fullName = `${person.firstName} ${person.patronynicName}`.trim();
+
   const birthDate = person.birthDate ? new Date(person.birthDate) : undefined; // убедитесь, что это Date
   const deathDate = person.deathDate ? new Date(person.deathDate) : undefined;
   const age = birthDate ? calculateAge(birthDate, deathDate) : null;
@@ -109,16 +109,25 @@ export default function PersonCard({
         <Group justify="center" align="flex-start">
           <div>
             {typePerson === "parent" && (
-              <Button  style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
-          color :'rgba(90, 85, 85, 1)'  ,border: "1px solid rgba(201, 186, 186, 1) "}}
-              
-              fullWidth radius="md" onClick={handleNavigateUp}>
+              <Button
+                style={{
+                  backgroundColor: "rgba(235, 223, 223, 1)",
+                  color: "rgba(90, 85, 85, 1)",
+                  border: "1px solid rgba(201, 186, 186, 1) ",
+                }}
+                fullWidth
+                radius="md"
+                onClick={handleNavigateUp}
+              >
                 {" "}
                 <IconChevronUp width={100} />
               </Button>
             )}
 
             <Title order={2}>{person.lastName || "Без фамилии"}</Title>
+
+           {person.parentLastName &&  <Title order={3}>{`(${person.parentLastName})`}</Title>}
+
             <Title order={3}>{fullName || "Без имени"}</Title>
           </div>
 
@@ -134,33 +143,42 @@ export default function PersonCard({
         <Text size="lg" c="dimmed">
           {birthDate && `${birthDate.toLocaleDateString("ru-RU")}`}
           {deathDate && ` — ${deathDate.toLocaleDateString("ru-RU")}`}
-          {age && ` (${age} ${getAgeLabel(age)})`}
+
+       
         </Text>
+ <Text size="md">
+   {age && ` (${age} ${getAgeLabel(age)})`}
+ </Text>
+
+
 
         {person.phone && <Text size="lg">📱 {person.phone}</Text>}
 
         {birthDate && (
           <>
             <Divider />
-             <Stack align="center" gap="xs">
+            <Stack align="center" gap="xs">
               <Text size="lg">
                 <b>Знак:</b> {zodiac}
               </Text>
-         
+
               <Text size="lg">
                 <b>Год:</b> {chineseZodiac}
               </Text>
 
               {typePerson === "child" && (
                 <Button
-                style={{ backgroundColor: 'rgba(235, 223, 223, 1)',
-          color :'rgba(90, 85, 85, 1)' ,border: "1px solid rgba(201, 186, 186, 1) " }}
+                  style={{
+                    backgroundColor: "rgba(235, 223, 223, 1)",
+                    color: "rgba(90, 85, 85, 1)",
+                    border: "1px solid rgba(201, 186, 186, 1) ",
+                  }}
                   fullWidth
                   radius="lg"
                   onClick={() => handleNavigateDown?.(childId)}
                 >
                   {" "}
-                  <IconChevronDown   width={100} />
+                  <IconChevronDown width={100} />
                 </Button>
               )}
             </Stack>

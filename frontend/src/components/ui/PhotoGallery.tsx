@@ -1,4 +1,4 @@
-import { useState, useEffect,  useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Image } from "@mantine/core";
 import PhotoModal from "../PhotoModal";
@@ -17,7 +17,7 @@ interface PhotoGalleryProps {
 
 export default function PhotoGallery({
   photoUrls,
- // photoIds,
+  // photoIds,
   editable = false,
   borderColor,
   //personId,
@@ -30,9 +30,7 @@ export default function PhotoGallery({
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
- 
-
- // const [currentIndex, setCurrentIndex] = useState(0);
+  // const [currentIndex, setCurrentIndex] = useState(0);
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,7 +75,7 @@ export default function PhotoGallery({
     };
   }, [emblaApi]);
 
- /* useEffect(() => {
+  /* useEffect(() => {
     if (photoUrls.length > 0) {
       setCurrentIndex(0);
     }
@@ -102,8 +100,6 @@ export default function PhotoGallery({
       </div>
     );
   }
-
-  
 
   return (
     <>

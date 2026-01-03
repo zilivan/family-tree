@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { TextInput, Button, Title, Group, Alert } from '@mantine/core';
-import { useRequestCodeMutation } from '../api/authApi';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TextInput, Button, Title, Alert } from "@mantine/core";
+import { useRequestCodeMutation } from "../api/authApi";
 
 export default function RegisterPage() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [patronymic, setPatronymic] = useState(''); // отчество (опционально)
-  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [patronymic, setPatronymic] = useState(""); // отчество (опционально)
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -16,11 +16,11 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     if (!firstName || !lastName || !email) {
-      setError('Имя, фамилия и email обязательны');
+      setError("Имя, фамилия и email обязательны");
       return;
     }
 
-   /* try {
+     try {
       // Передаём ФИО + email на бэкенд
      
 
@@ -28,15 +28,19 @@ export default function RegisterPage() {
       setError(null);
     } catch (err: any) {
       setError(err.data?.error || 'Ошибка при отправке кода');
-    }*/
+    }
   };
 
   if (success) {
     return (
-      <div style={{ maxWidth: 400, margin: '2rem auto', padding: '0 1rem' }}>
-        <Title order={2} mb="md">Код отправлен</Title>
-        <p>Мы отправили код подтверждения на <strong>{email}</strong></p>
-        <Button fullWidth mt="md" onClick={() => navigate('/login')}>
+      <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+        <Title order={2} mb="md">
+          Код отправлен
+        </Title>
+        <p>
+          Мы отправили код подтверждения на <strong>{email}</strong>
+        </p>
+        <Button fullWidth mt="md" onClick={() => navigate("/login")}>
           Перейти к входу
         </Button>
       </div>
@@ -44,10 +48,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: '0 1rem' }}>
-      <Title order={2} mb="md">Регистрация</Title>
+    <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+      <Title order={2} mb="md">
+        Регистрация
+      </Title>
 
-      {error && <Alert color="red" mb="md">{error}</Alert>}
+      {error && (
+        <Alert color="red" mb="md">
+          {error}
+        </Alert>
+      )}
 
       <TextInput
         label="Имя"
@@ -77,6 +87,7 @@ export default function RegisterPage() {
 
       <Button fullWidth onClick={handleSubmit} loading={isLoading}>
         Получить код подтверждения
-      </Button>
+      </Button>   
     </div>
-  )};
+  );
+}
