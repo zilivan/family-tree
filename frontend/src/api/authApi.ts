@@ -12,12 +12,13 @@ interface VerifyCodeRequest {
 
 interface AuthResponse {
   token: string;
-  user: { id: string; email: string; isAdmin: boolean };
+  user: { id: string; email: string; isAdmin: boolean ; personId:string;};
 }
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000" }),
+  
   endpoints: (builder) => ({
     requestCode: builder.mutation<void, LoginRequest>({
       query: (body) => ({

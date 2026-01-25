@@ -7,22 +7,22 @@ import styles from "./PhotoGallery.module.css";
 
 interface PhotoGalleryProps {
   photoUrls: string[];
-  photoIds: string[]; // ← нужно для удаления по ID
+  photoIds?: string[]; // ← нужно для удаления по ID
   editable?: boolean;
-  personId: string;
-  borderColor: string;
-  onPhotoAdd?: (file: File) => Promise<void>;
-  onPhotoRemove?: (photoId: string) => Promise<void>;
+  personId?: string;
+  borderColor?: string;
+  onPhotoAdd?: (file: File) => void;
+  onPhotoRemove?: (index: number) => void;
 }
 
 export default function PhotoGallery({
   photoUrls,
-  // photoIds,
+ // photoIds=[],
   editable = false,
-  borderColor,
+  borderColor = "201, 186, 186",
   //personId,
   onPhotoAdd,
-  //onPhotoRemove,
+ // onPhotoRemove,
 }: PhotoGalleryProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -40,7 +40,7 @@ export default function PhotoGallery({
     setFullscreenPhoto(url);
   };
 
-  /*const handleRemove = (e: React.MouseEvent) => {
+ /* const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onPhotoRemove || photoUrls.length <= 1) return;
 
@@ -129,7 +129,7 @@ export default function PhotoGallery({
                   src={url}
                   fallbackSrc="/assets/placeholder-person.jpg" // ← лежит в /public/
                   alt={`нет фото`}
-                  height={300}
+          
                   fit="cover"
                   onClick={() => handleDoubleClick(url)}
                   style={{ cursor: "zoom-in", width: "100%", height: "100%" }}

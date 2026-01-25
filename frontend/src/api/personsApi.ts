@@ -1,25 +1,35 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { Person } from '../types/index'
 
-export interface Person {
-  id: string;
-  firstName: string;
-  lastName: string;
-  birthDate: string | null;
-  deathDate: string | null;
-  gender: "male" | "female" | "other" | null;
-  phone: string | null;
-  parentId: string | null;
-  userId: string | null;
-  branch: string;
-  photos: { id: string; url: string }[];
-}
 export interface FamilyResponse {
   currentPerson: Person;
   husband: Person | null;
   wife: Person | null;
-  children: Person[];
   branch: string;
+  otherPartnersHusband: Person[]; // ← добавьте, если используете
+  otherPartnersWife: Person[];    
 }
+export interface CreatePersonInput {
+  firstName: string;
+  lastName: string;
+  patronymic: string | null;
+  birthDate?: string | null; // ISO string, например: "1990-01-15T00:00:00.000Z"
+  deathDate?: string | null;
+  gender?: 'male' | 'female' |  null | undefined;
+  phone?: string | null;
+  fatherId?: string | null;
+    motherId?: string | null;
+    photos?: string[];
+   spouseIds?: string [];
+}
+export interface SearchPersonResult {
+  id: string;
+  firstName: string;
+  lastName: string;
+  patronymic: string | null;
+  birthDate: string | null;
+}
+
 
 export const personsApi = createApi({
   reducerPath: "personsApi",
@@ -32,13 +42,55 @@ export const personsApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getPerson: builder.query<Person, string>({
-      query: (id) => `/persons/${id}`,
+
+    getPerson: builder.query<Person, { id: string; branch?: string }>({
+  query: ({ id, branch = 'base' }) => {
+    const params = new URLSearchParams();
+    if (branch) params.append('branch', branch);
+    return `/persons/${id}?${params.toString()}`;
+  },
+}),
+
+getFamily: builder.query<FamilyResponse, { personId: string; branch?: string }>({
+  query: ({ personId, branch = 'base' }) => `/persons/${personId}/family?branch=${branch}`,
+}),
+
+  createPerson: builder.mutation<Person,CreatePersonInput >({
+      query: (newPersonData) => ({
+        url: '/persons',
+        method: 'POST',
+        body: newPersonData,
+      }),
+      // Опционально: автоматически обновлять кэш после создания
+      // invalidatesTags: ['Persons'],
     }),
-    getFamily: builder.query<any, { personId: string; branch?: string }>({
-      query: ({ personId, branch = "base" }) =>
-        `/persons/${personId}/family?branch=${branch}`,
+    uploadPerson: builder.mutation<Person ,{ id: string, data:CreatePersonInput } >({
+      query: ( {id, data}) => ({
+        url: `/persons/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      // Опционально: автоматически обновлять кэш после создания
+       //invalidatesTags: ['Persons'],
     }),
+
+
+searchPersons: builder.query<SearchPersonResult[], { query: string; branch: string; selectGender:string; }>({
+  query: ({ query, branch, selectGender }) => `/persons/search?q=${encodeURIComponent(query)}&branch=${branch}&selectGender=${selectGender}`,
+}),
+
+getPersonsFullName: builder.query<SearchPersonResult[], { ids: string[]; branch: string }>({
+  
+  query: ({ ids, branch }) => {
+
+    const params = new URLSearchParams();
+ids.forEach(id => params.append('ids', id.toString()));
+ if (branch) params.append('branch', branch);
+   return  `/persons/fullname/?${params.toString()}`;
+  },
+
+}),
+
     uploadPhoto: builder.mutation<
       { photoUrl: string },
       { personId: string; formData: FormData }
@@ -52,5 +104,5 @@ export const personsApi = createApi({
   }),
 });
 
-export const { useGetPersonQuery, useGetFamilyQuery, useUploadPhotoMutation } =
+export const { useGetPersonQuery, useGetFamilyQuery, useUploadPhotoMutation,useCreatePersonMutation,useSearchPersonsQuery,useUploadPersonMutation,useGetPersonsFullNameQuery } =
   personsApi;

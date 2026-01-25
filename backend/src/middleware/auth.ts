@@ -1,4 +1,52 @@
 // backend/src/middleware/auth.ts
+
+// src/middleware/auth.ts
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+      isAdmin?: boolean;
+    }
+  }
+}
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+
+export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Токен отсутствует' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user: any) => {
+    if (err) return res.status(403).json({ error: 'Неверный токен' });
+    req.userId = user.id;
+    req.isAdmin = user.isAdmin;
+    next();
+  });
+};
+
+export const authenticateAdmin = (req: Request, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, () => {
+    if (!req.isAdmin) {
+      return res.status(403).json({ error: 'Требуется админ' });
+    }
+    next();
+  });
+};
+
+
+
+
+
+
+/*
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -33,4 +81,4 @@ export const authenticateAdmin = (req: AuthenticatedRequest, res: Response, next
     }
     next();
   });
-};
+};*/

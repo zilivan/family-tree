@@ -2,32 +2,56 @@
 import { Router } from 'express';
 import prisma from '../db';
 import { authenticateToken, authenticateAdmin } from '../middleware/auth';
-import { z } from 'zod';
+import { z ,ZodError} from 'zod';
 import { Prisma } from '@prisma/client'; // <-- Теперь можно использовать типы Prisma
 
 const router = Router();
 
 // --- Валидационные схемы Zod ---
 const createPersonSchema = z.object({
-  firstName: z.string().min(1, "Имя обязательно"),
-  lastName: z.string().min(1, "Фамилия обязательна"),
-  birthDate: z.string().datetime().optional().nullable(),
-  deathDate: z.string().datetime().optional().nullable(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  patronymic: z.string().optional(),
+birthDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val === "" ? null : val))
+    .pipe(z.string().datetime().nullable().optional()),
+
+  deathDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val === "" ? null : val))
+    .pipe(z.string().datetime().nullable().optional()),
+  gender: z.enum(['male', 'female']).optional(),
   phone: z.string().optional().nullable(),
-  photoUrl: z.string().url().optional().nullable(),
-  parentId: z.string().optional().nullable(), // ID родителя (если есть)
+  fatherId: z.string().optional().nullable(), // ← новое
+  motherId: z.string().optional().nullable(), // ← новое
+  
 });
 
 const updatePersonSchema = z.object({
   firstName: z.string().min(1, "Имя обязательно").optional(),
   lastName: z.string().min(1, "Фамилия обязательна").optional(),
-  birthDate: z.string().datetime().optional().nullable(),
-  deathDate: z.string().datetime().optional().nullable(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+   patronymic: z.string().optional(),
+  birthDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val === "" ? null : val))
+    .pipe(z.string().datetime().nullable().optional()),
+  deathDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val === "" ? null : val))
+    .pipe(z.string().datetime().nullable().optional()),
+  gender: z.enum(['male', 'female']).optional(),
   phone: z.string().optional().nullable(),
-  photoUrl: z.string().url().optional().nullable(),
-  parentId: z.string().optional().nullable(),
+  fatherId: z.string().optional().nullable(), // ← новое
+  motherId: z.string().optional().nullable(), // ← новое
 });
 
 // --- Получить всех персон ---
@@ -36,14 +60,22 @@ router.get('/', async (req, res) => {
   try {
     const persons = await prisma.person.findMany({
       include: {
-        parent: true, // Включить информацию о родителе
-        children: true, // Включить информацию о детях
-        marriages: {
+        father: true, 
+        mother: true,
+        childrenAsFather: true,
+        childrenAsMother: true, 
+        marriagesAsHusband: {
           include: {
             husband: true,
             wife: true,
           },
         },
+        marriagesAsWife: {
+          include: {
+            husband: true,
+            wife: true,
+          },
+        }, 
         photos: true,
       },
     });
@@ -53,6 +85,78 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch persons' });
   }
 });
+// --Поиск персон
+router.get('/search', async (req, res) => {
+  const { q, branch = 'base', selectGender = null } = req.query;
+
+  
+  if (!q || typeof q !== 'string') {
+   
+    return res.json([]);
+  }
+
+  try {
+    const persons = await prisma.person.findMany({
+      where: {
+        branch: 'base',
+        gender:selectGender as string | null,
+        OR: [
+          { firstName: { contains: q, mode: 'insensitive' } },
+          { lastName: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        patronymic: true,
+        birthDate:true,
+
+      },
+      take: 10, // максимум 10 результатов
+    });
+
+    res.json(persons);
+    
+  } catch (error) {
+    console.error('Ошибка поиска:', error);
+    res.status(500).json([]);
+  }
+});
+
+// --- Получить список полных имен  по ID ---
+router.post('/fullname', async (req, res) => {
+  const { ids =[] } = req.body;
+
+const { branch = 'base' } = req.query; // ← Получаем ветку из query-параметра
+if ( !Array.isArray(ids) || ids.length === 0 ) {
+    return res.json([]);
+  }
+
+  try {
+    const persons = await prisma.person.findMany({
+      where: {
+        id: { in: ids },
+        branch: 'base'
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        patronymic: true,
+      },
+    });
+
+    const personMap = new Map(persons.map(p => [p.id, p]));
+    const ordered = ids.map(id => personMap.get(id)).filter(Boolean);
+
+    res.json(ordered);
+  } catch (error) {
+    console.error('Ошибка при получении персоны:', error);
+    res.status(500).json({ error: 'Failed to fetch person' });
+  }
+});
+
 
 // --- Получить персону по ID ---
 router.get('/:id', async (req, res) => {
@@ -60,16 +164,24 @@ router.get('/:id', async (req, res) => {
 const { branch = 'base' } = req.query; // ← Получаем ветку из query-параметра
   try {
      const person = await prisma.person.findUnique({
-      where: { id, branch: branch as string }, // ← Фильтрация по ветке
+      where: {  id,  branch: branch as string },// ← Фильтрация по ветке
       include: {
-        parent: true,
-        children: true,
-        marriages: {
+        father: true, 
+        mother: true,
+        childrenAsFather: true,
+        childrenAsMother: true, 
+       marriagesAsHusband: {
           include: {
             husband: true,
             wife: true,
           },
         },
+        marriagesAsWife: {
+          include: {
+            husband: true,
+            wife: true,
+          },
+        }, 
         photos: true, // ← Добавляем фото
       },
     });
@@ -88,88 +200,137 @@ const { branch = 'base' } = req.query; // ← Получаем ветку из q
 // --- Создать новую персону (только авторизованный пользователь) ---
 // POST /api/persons
 router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const validatedData = createPersonSchema.parse(req.body);
 
+
+const data = createPersonSchema.parse(req.body);
+const {  ...validatedData} = data;
+
+  try {
+    
     // ВСЕГДА создаём в редактируемой ветке
-    const newPerson = await prisma.person.create({
+     const newPerson = await prisma.person.create({
       data: {
         ...validatedData,
         branch: 'edit',
-        userId: req.userId, // ← привязка к пользователю
+        status: 'PENDING',
+        modeStatus:'NEW',
+        createdById: req.userId,
         birthDate: validatedData.birthDate ? new Date(validatedData.birthDate) : null,
         deathDate: validatedData.deathDate ? new Date(validatedData.deathDate) : null,
+
+        // fatherId и motherId передаются как есть
       },
     });
 
+
     res.status(201).json(newPerson);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
+    if (error instanceof ZodError) {
+      return res.status(400).json({ error: 'Неверные данные', details: error.issues,});
     }
-    console.error('Ошибка при создании персоны:', error);
-    res.status(500).json({ error: 'Failed to create person' });
+    
+    res.status(500).json({ error: 'Ошибка авторицации' });
   }
 });
 
 // --- Обновить персону (только авторизованный пользователь) ---
 // PUT /api/persons/:id
 router.put('/:id', authenticateToken, async (req, res) => {
+
   const { id } = req.params;
-  const { branch = 'base' } = req.query; // ← для поиска исходной персоны
-
+  const branch = 'base';
+ const data = updatePersonSchema.parse(req.body);
+  const {...validatedData } = data;
   try {
-    const person = await prisma.person.findUnique({
-      where: { id, branch: branch as string },
+    const basePerson = await prisma.person.findUnique({
+      where: { id, branch },
     });
-    if (!person) return res.status(404).json({ error: 'Person not found' });
 
-    // Только владелец или админ
-    if (req.userId !== person.userId && !req.isAdmin) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (!basePerson) {
+      return res.status(404).json({ error: 'Person not found' });
     }
 
-    const validatedData = updatePersonSchema.parse(req.body);
+   
 
-    // Создаём или обновляем КОПИЮ в ветке 'edit'
-    const existingInEdit = await prisma.person.findFirst({
-      where: { id, branch: 'edit' },
+    let editPerson = await prisma.person.findFirst({
+      where: { 
+        modeStatusEditId: id, 
+        branch: 'edit' 
+      },
     });
 
-    if (existingInEdit) {
-      // Обновляем существующую редактируемую копию
-      const updated = await prisma.person.update({
-        where: { id: existingInEdit.id },
+    const birthDate = validatedData.birthDate 
+      ? new Date(validatedData.birthDate) 
+      : null;
+    const deathDate = validatedData.deathDate 
+      ? new Date(validatedData.deathDate) 
+      : null;
+  
+    
+    if (editPerson) {
+      
+      editPerson = await prisma.person.update({
+        where: { id: editPerson.id },
         data: {
           ...validatedData,
-          birthDate: validatedData.birthDate ? new Date(validatedData.birthDate) : null,
-          deathDate: validatedData.deathDate ? new Date(validatedData.deathDate) : null,
+          modeStatus: 'EDIT',
+          birthDate,
+          deathDate,
         },
       });
-      return res.json(updated);
+// Удаляем ВСЕ старые браки этой редактируемой персоны
+     await prisma.marriage.deleteMany({
+        where: {
+          OR: [
+            { husbandId: editPerson.id,branch: 'edit' },
+            { wifeId: editPerson.id ,branch: 'edit'}
+          ]
+        }
+      });
+
+ 
+
     } else {
-      // Создаём новую запись в 'edit' как копию из 'base'
-      const copy = await prisma.person.create({
+     
+      editPerson = await prisma.person.create({
         data: {
-          ...person,
-          id: undefined, // ← Prisma сам сгенерирует новый cuid()
+          
+          ...basePerson,
+         
+          ...validatedData,
+         
+          id: undefined, 
           branch: 'edit',
-          userId: req.userId,
+          status: 'PENDING',
+          modeStatus: 'EDIT',
+          modeStatusEditId: id, 
+          birthDate,
+          deathDate,
           createdAt: undefined,
           updatedAt: undefined,
+
         },
       });
-      return res.json(copy);
+// Создаём браки для новой копии
+ /*    if (husbandId || wifeId) {
+      await createMarriages(editPerson.id,husbandId, wifeId,marriageStartDate,marriageEndDate);
+    }*/
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
+
+    return res.json(editPerson);
+
+  } 
+  catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: error.issues 
+      });
     }
     console.error('Ошибка при обновлении персоны:', error);
     res.status(500).json({ error: 'Failed to update person' });
   }
 });
-
 
 
 // --- Удалить персону (только администратор) ---
@@ -180,10 +341,16 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
     // Проверим, есть ли у персоны дети
     const personWithChildren = await prisma.person.findUnique({
       where: { id },
-      include: { children: true },
+      include: { 
+        childrenAsFather: true,
+         childrenAsMother: true, 
+       },
     });
 
-    if (personWithChildren && personWithChildren.children.length > 0) {
+
+
+    if (personWithChildren && personWithChildren.childrenAsFather.length > 0 
+       && personWithChildren && personWithChildren.childrenAsMother.length > 0 ) {
       return res.status(400).json({ error: 'Cannot delete person with children' });
     }
 
@@ -202,15 +369,41 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
 
 router.get('/:id/family', async (req, res) => {
   const { id } = req.params;
-  const { branch = 'base' } = req.query;
-
+  const { branch  } = req.query;
+  let person;
   try {
-    const person = await prisma.person.findUnique({
-      where: { id, branch: branch as string },
-      include: { photos: true },
+     if (branch ==='edit') {
+      
+   person = await prisma.person.findFirst({
+      where: { modeStatusEditId: id,  branch: branch as string },
+      include: {
+        photos: true,
+        father: { include: { photos: true } },
+        mother: { include: { photos: true } },
+        // ← Включаем детей обоих полов
+        childrenAsFather: { include: { photos: true } },
+        childrenAsMother: { include: { photos: true } },
+      },
     });
+     }else {
 
-    if (!person) return res.status(404).json({ error: 'Person not found' });
+
+     person = await prisma.person.findFirst({
+      where: { id, branch: branch as string },
+      include: {
+        photos: true,
+        father: { include: { photos: true } },
+        mother: { include: { photos: true } },
+        // ← Включаем детей обоих полов
+        childrenAsFather: { include: { photos: true } },
+        childrenAsMother: { include: { photos: true } },
+      },
+    });
+}
+
+    if (!person && branch==='edit' ) return res.json({data: null});
+    if (!person ) return res.status(404).json({ error: 'Person not found' });
+
 
     // Браки
     const marriagesAsHusband = await prisma.marriage.findMany({
@@ -230,8 +423,12 @@ router.get('/:id/family', async (req, res) => {
     if (marriagesAsWife.length > 0) husband = marriagesAsWife[0].husband;
 
     // Дети
-    const children = await prisma.person.findMany({
-      where: { parentId: id, branch: branch as string },
+    const childrenAsFather = await prisma.person.findMany({
+      where: { fatherId: id, branch: branch as string },
+      include: { photos: true },
+    });
+    const childrenAsMother = await prisma.person.findMany({
+      where: { motherId: id, branch: branch as string },
       include: { photos: true },
     });
 
@@ -239,7 +436,8 @@ router.get('/:id/family', async (req, res) => {
       currentPerson: person,
       husband,
       wife,
-      children,
+      childrenAsFather,
+      childrenAsMother,
       branch,
     });
   } catch (error) {
@@ -263,3 +461,37 @@ router.post('/:id/upload-photo', authenticateToken, async (req, res) => {
 
 
 export default router;
+
+
+/* async function createMarriages(
+  personId: string, 
+  husbandId: string | null | undefined, 
+  wifeId: string | null | undefined,
+  marriageStartDate: Date | null,
+  marriageEndDate: Date | null,
+) {
+  // Если указан муж — создаём брак (жена = personId, муж = husbandId)
+  if (husbandId && husbandId.trim()) {
+    await prisma.marriage.create({
+       data:{
+        husbandId: husbandId.trim(),
+        wifeId: personId,
+        branch: 'edit',
+        status: 'PENDING',
+      }
+    });
+  }
+
+  // Если указана жена — создаём брак (муж = personId, жена = wifeId)
+  if (wifeId && wifeId.trim()) {
+    await prisma.marriage.create({
+      data: {
+        husbandId: personId,
+        wifeId: wifeId.trim(),
+        branch: 'edit',
+        status: 'PENDING',
+      }
+    });
+  }
+}
+  */

@@ -64,7 +64,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
     name: getOrCreateGuestName(),
     isGuest: true,
   };
-  const apiUrl = 3000;
+  const apiUrl = "http://localhost:3000";
   // Fetch messages from API
   const fetchMessages = async () => {
     if (!apiUrl) return;
@@ -117,13 +117,13 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
   };
 
   // Poll for new messages
-  /*useEffect(() => {
+  useEffect(() => {
     if (isOpen && apiUrl) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, apiUrl]);*/
+  }, [isOpen, apiUrl]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

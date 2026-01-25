@@ -8,6 +8,8 @@ interface User {
   email?: string;
   name: string;
   isAnonymous: boolean;
+  isAdmin?: boolean;
+  personId:string
 }
 
 interface AuthContextType {

@@ -4,10 +4,13 @@ import { AuthProvider } from "./contexts/AuthContext";
 
 import PersonPage from "./pages/PersonPage";
 import LoginPage from "./pages/LoginPage";
-//import RegisterPage from "./pages/RegisterPage";
+import RegisterPage from "./pages/RegisterPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+//import AdminRoute from './components/AdminRoute';
+//import AdminPanelPage from './pages/AdminPanelPage';
+
 
 export default function App() {
   return (
@@ -20,12 +23,11 @@ export default function App() {
               <Index />
             </ProtectedRoute>
           }
-        />
+               />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<NotFound />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/person/:id" element={<PersonPage />} />
-        <Route path="/tree" element={<Index />} />
-
+  
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AuthProvider>

@@ -4,6 +4,7 @@ import { Button, Box, Text, Stack, Paper, Group } from "@mantine/core";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import FamilyViewPage from "./FamilyViewPage";
+import AdminPanelPage from "./AdminPanelPage";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -14,6 +15,8 @@ const Index = () => {
     logout();
     navigate("/login");
   };
+
+
 
   return (
     <MantineProvider>
@@ -27,6 +30,7 @@ const Index = () => {
                 </Text>
                 <Text size="sm" c="dimmed">
                   Привет, {user?.name || "Пользователь"}!
+          
                 </Text>
               </Box>
               <Button
@@ -42,7 +46,9 @@ const Index = () => {
         </Paper>
 
         <MantineChatWidget />
+        {user?.isAdmin && <AdminPanelPage />}
         <FamilyViewPage />
+
       </div>
     </MantineProvider>
   );

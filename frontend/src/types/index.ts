@@ -4,13 +4,12 @@ export type Person = {
   id: string;
   firstName: string;
   lastName: string;
-  patronynicName: string | null; // ISO string или null
+  patronymic: string | null; // ISO string или null
   parentLastName:string | null; // ISO string или null
   birthDate: string | null; // ISO string или null
   deathDate: string | null; // ISO string или null
-  gender: "male" | "female" | "other" | null;
+  gender: "male" | "female" | null | undefined;
   phone: string | null;
-  parentId?: string | null;
   userId?: string | null; // для проверки прав редактирования
   branch?: "base" | "edit";
 
@@ -20,7 +19,16 @@ export type Person = {
   // children: Person[]; — не передаём в карточке, только в FamilyView
 
   // Фото — отдельная связь
-  photoUrls: Photo[];
+  
+  photos: Photo[];
+   fatherId: string | null;
+  motherId: string | null;
+  father: Person | null;
+  mother: Person | null;
+  childrenAsFather: Person[];
+  childrenAsMother: Person[];
+   modeStatus:"CREATE" | "EDIT" | "NEW" ;
+  spouseIds: string [];
 };
 
 export type Photo = {

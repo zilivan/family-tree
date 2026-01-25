@@ -16,7 +16,8 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { MantineProvider } from "../provider/MantineProvider";
 
-type AuthStep = "email-code" | "email" | "register" | "anonymous";
+type AuthStep = "email-code" | "email" | "register" | "anonymous"|"admin";
+
 
 interface ApiResponse {
   token: string;
@@ -25,6 +26,8 @@ interface ApiResponse {
     email?: string;
     name: string;
     isAnonymous: boolean;
+    isAdmin:boolean;
+    personId:string;
   };
 }
 
@@ -33,11 +36,12 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [anonymousCode, setAnonymousCode] = useState("");
+  const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<AuthStep>("email-code");
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
 
@@ -63,16 +67,21 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${getApiUrl()}/auth/request-code`, {
+      const response  = await fetch(`${getApiUrl()}/auth/request-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-
+     const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error((data.error = "Ошибка при отправке кода"));
-      }
+       
+        throw new Error((data.error || "Невертый email"));
+      } else {
+  
+    setPendingPersonId(data.personId);
+  
+  }
+
 
       setCodeSent(true);
     } catch (err: any) {
@@ -103,10 +112,22 @@ export default function LoginPage() {
         const data = await response.json();
         throw new Error(data.error || "Неверный код");
       }
+     const result: ApiResponse = await response.json();
 
-      const result: ApiResponse = await response.json();
+
+     if (response.ok) {
+      
+    
+
       login(result.token, result.user);
-      navigate("/");
+     
+if (pendingPersonId) {
+  navigate(`/?personId=${pendingPersonId}`);
+} else {
+
+  navigate("/");
+}
+}
     } catch (err: any) {
       setError(err.message || "Неверный код");
     } finally {
@@ -115,34 +136,9 @@ export default function LoginPage() {
   };
 
   const handleRegister = async () => {
-    if (!email || !name) {
-      setError("Пожалуйста, заполните все поля");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${getApiUrl()}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Ошибка при регистрации");
-      }
-
-      const result: ApiResponse = await response.json();
-      login(result.token, result.user);
-      navigate("/");
-    } catch (err: any) {
-      setError(err.message || "Ошибка при регистрации");
-    } finally {
-      setIsLoading(false);
-    }
+   
+      navigate("/register");
+   
   };
 
   const handleAnonymousLogin = async () => {
@@ -154,22 +150,9 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
-    if (anonymousCode === "1111") {
-      navigate("/tree");
-    } else {
-      setError("Неверный код");
-    }
+  
 
-    setIsLoading(false);
-
-    /*try {
-
-
-
-
-
-
-
+    try {
 
       const response = await fetch(`${getApiUrl()}/auth/anonymous`, {
         method: 'POST',
@@ -189,8 +172,44 @@ export default function LoginPage() {
       setError(err.message || 'Неверный код');
     } finally {
       setIsLoading(false);
-    }*/
+    }
   };
+
+const handleAdminLogin = async () => {
+    if (!adminCode) {
+      setError("Пожалуйста, введите код");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+
+      const response = await fetch(`${getApiUrl()}/auth/admin-pass`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: adminCode }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Неверный код');
+      }
+
+      const result: ApiResponse = await response.json();
+      login(result.token, result.user);
+
+
+      navigate('/admin');
+    } catch (err: any) {
+      setError(err.message || 'Неверный код');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
+
 
   const resetForm = () => {
     setError(null);
@@ -229,6 +248,7 @@ export default function LoginPage() {
               <Tabs.Tab value="email">По email</Tabs.Tab>
               <Tabs.Tab value="register">Регистрация</Tabs.Tab>
               <Tabs.Tab value="anonymous">Аноним</Tabs.Tab>
+               <Tabs.Tab value="admin">Администратор</Tabs.Tab>
             </Tabs.List>
             {/*  Email + Code */}
             <Tabs.Panel value="email-code">
@@ -314,22 +334,11 @@ export default function LoginPage() {
             {/* Registration */}
             <Tabs.Panel value="register">
               <Stack>
-                <TextInput
-                  label="Имя"
-                  placeholder="Ваше имя"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-                <TextInput
-                  label="Email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Text size="sm" c="dimmed" mb="xs">
+                  При регистрации вводите достоверные данные
+                </Text>
                 <Button fullWidth onClick={handleRegister} loading={isLoading}>
-                  Зарегистрироваться
+                  Начать регистрацию
                 </Button>
               </Stack>
             </Tabs.Panel>
@@ -356,6 +365,30 @@ export default function LoginPage() {
                 </Button>
               </Stack>
             </Tabs.Panel>
+{/* Admin Login with Code */}
+            <Tabs.Panel value="admin">
+              <Stack>
+                <Text size="sm" c="dimmed" mb="xs">
+                  Введите код для входа администратора
+                </Text>
+                <PasswordInput
+                  label="Код доступа"
+                  placeholder="Введите код"
+                  value={adminCode}
+                  onChange={(e) => setAdminCode(e.target.value)}
+                  required
+                />
+                <Button
+                  fullWidth
+                  onClick={handleAdminLogin}
+                  loading={isLoading}
+                >
+                  Войти как администратор
+                </Button>
+              </Stack>
+            </Tabs.Panel>
+
+
           </Tabs>
         </Paper>
       </Container>
