@@ -1,6 +1,6 @@
 // src/api/adminApi.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type {Person} from "../types/index"
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { Person, User as AdminUser } from "../types/index";
 
 export interface PendingPerson {
   id: string;
@@ -8,80 +8,99 @@ export interface PendingPerson {
   lastName: string;
   patronymic: string | null;
   birthDate: string;
-  status: 'PENDING' | 'CONFIRMED';
+  status: "PENDING" | "CONFIRMED";
   pendingRegistration: {
     email: string;
   } | null;
   createdAt: string;
 }
 
-export interface AdminUser {
-  id: string;
-  email: string;
-  isAdmin: boolean;
-  isVerified: boolean;
-  createdAt: string;
-  person: {
-    firstName: string;
-    lastName: string;
-    birthDate: string;
-  } | null;
-}
 export interface EditPerson extends Person {
   creator: { email: string } | null;
 }
 
 export const adminApi = createApi({
-  reducerPath: 'adminApi',
+  reducerPath: "adminApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: "http://localhost:3000/api",
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const token = localStorage.getItem("token");
+      if (token) headers.set("Authorization", `Bearer ${token}`);
       return headers;
     },
   }),
-tagTypes: ['PendingPersons'],
+  tagTypes: ["PendingPersons", "EditPersons", "GetUsers"],
 
   endpoints: (builder) => ({
-
     getPendingPersons: builder.query<PendingPerson[], void>({
-      query: () => '/admin/pending-persons',
-      providesTags: ['PendingPersons'],
+      query: () => "/admin/pending-persons",
+      providesTags: ["PendingPersons"],
     }),
-getEditPersons: builder.query<EditPerson[], void>({
-  query: () => '/admin/edit-persons',
-  //providesTags: ['EditPersons'],
-}),
+    getEditPersons: builder.query<EditPerson[], void>({
+      query: () => "/admin/edit-persons",
+      providesTags: ["EditPersons"],
+    }),
+    getUsers: builder.query<AdminUser[], void>({
+      query: () => "/admin/users",
+      providesTags: ["GetUsers"],
+    }),
 
-applyPersonChanges: builder.mutation<void, string>({
-  query: (personId) => ({
-    url: `/admin/apply-person/${personId}`,
-    method: 'POST',
-  }),
-  // Инвалидируем семью после применения
-  //invalidatesTags: ['Family'],
-}),
-// Новый мутация: отклонить изменения
-rejectPersonChanges: builder.mutation<void, string>({
-  query: (personId) => ({
-    url: `/admin/reject-person/${personId}`,
-    method: 'DELETE',
-  }),
- // invalidatesTags: ['EditPersons'],
-}),
-
+    applyPersonChanges: builder.mutation<void, string>({
+      query: (personId) => ({
+        url: `/admin/apply-person/${personId}`,
+        method: "POST",
+      }),
+      // Инвалидируем семью после применения
+      invalidatesTags: ["EditPersons"],
+    }),
+    // Новый мутация: отклонить изменения
+    rejectPersonChanges: builder.mutation<void, string>({
+      query: (personId) => ({
+        url: `/admin/reject-person/${personId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["EditPersons"],
+    }),
 
     confirmPerson: builder.mutation<void, string>({
       query: (personId) => ({
         url: `/admin/confirm-person/${personId}`,
-        method: 'POST',
+        method: "POST",
       }),
       // Авто-обновление списка после подтверждения
-      invalidatesTags: ['PendingPersons'],
+      invalidatesTags: ["PendingPersons"],
     }),
-    getUsers: builder.query<AdminUser[], void>({
-      query: () => '/admin/users',
+
+    toggleUserBlock: builder.mutation<
+      void,
+      { userId: string; isBlocked: boolean }
+    >({
+      query: ({ userId, isBlocked }) => ({
+        url: `/admin/users/${userId}/block`,
+        method: "PATCH",
+        body: { isBlocked },
+      }),
+      invalidatesTags: ["GetUsers", "PendingPersons", "EditPersons"],
+    }),
+
+    toggleUserAdmin: builder.mutation<
+      void,
+      { userId: string; isAdmin: boolean }
+    >({
+      query: ({ userId, isAdmin }) => ({
+        url: `/admin/users/${userId}/admin`,
+        method: "PATCH",
+        body: { isAdmin },
+      }),
+      invalidatesTags: ["GetUsers", "PendingPersons", "EditPersons"],
+    }),
+
+    deleteUser: builder.mutation<void, string>({
+      query: (userId) => ({
+        url: `/admin/users/${userId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["GetUsers"],
     }),
   }),
 });
@@ -93,4 +112,7 @@ export const {
   useGetUsersQuery,
   useGetEditPersonsQuery,
   useRejectPersonChangesMutation,
+  useToggleUserBlockMutation,
+  useToggleUserAdminMutation,
+  useDeleteUserMutation,
 } = adminApi;

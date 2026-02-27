@@ -151,6 +151,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
 
   const getInitials = (name: string) => {
     return name.slice(0, 2).toUpperCase();
+    //return name
   };
 
   if (!isOpen) {

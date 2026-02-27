@@ -1,11 +1,12 @@
 // src/routes/admin.ts
 import { Router } from 'express';
 import prisma from '../db';
-import { authenticateAdmin } from '../middleware/auth';
+import { authenticateAdmin,authorizeSuperAdmin } from '../middleware/auth';
 import { sendVerificationCode } from '../utils/email';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { console } from 'inspector';
+ import {applyMarriages} from '../utils/applyMarriages'
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
@@ -35,7 +36,6 @@ router.get('/pending-persons', authenticateAdmin, async (req, res) => {
 // Подтвердить персону
 router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
-
   try {
     // Проверяем, существует ли персона в статусе PENDING
     const person = await prisma.person.findUnique({
@@ -47,13 +47,10 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
     }
 
 
-
     // Получаем email из pendingRegistration
     const pendingReg = await prisma.pendingRegistration.findUnique({
       where: { personId: id },
     });
-
-
 
     // Обновляем статус персоны
     await prisma.person.update({
@@ -63,11 +60,9 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
                modeStatus:'CREATE',
         },
     });
-    
-  
+    await applyMarriages(person.id, person.id, person.gender || 'male');
 
     if (!pendingReg) {
-
 
       return (
       res.json({ 
@@ -76,15 +71,17 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
     }))
     }
 
+
     // Создаём пользователя
     const user = await prisma.user.create({
        data :{
         email: pendingReg.email,
-        personId: id,
+      personId: id,
         isVerified: true,
-        phone:person.phone,
+        phone:person.phone ?  person.phone : null,
       },
     });
+
 
     // Генерируем код подтверждения
     const code = crypto.randomInt(100000, 999999).toString();
@@ -109,19 +106,11 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
     res.status(500).json({error: 'Пользователь  не подтвержден'});
   }
 });
-// Применить изменения персоны (из edit → base)
-
-
 
 
 
 router.post('/apply-person/:id', authenticateAdmin, async (req, res) => {
-
   const { id } = req.params;
-
-
-
-
   try {
     // Находим редактируемую версию
     const editPerson = await prisma.person.findFirst({
@@ -132,11 +121,6 @@ router.post('/apply-person/:id', authenticateAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Редактируемая версия не найдена' });
     }
 
-    if (editPerson ){
-      console.log(editPerson);
-
-
-    }
 
     // Проверяем, есть ли основная версия
     if (editPerson.modeStatus === "EDIT" && editPerson.modeStatusEditId) {
@@ -149,8 +133,7 @@ router.post('/apply-person/:id', authenticateAdmin, async (req, res) => {
     if (!basePerson) {
         return res.status(404).json({ error: 'Основная персона не найдена' });
       }
-
-          
+ 
       // Обновляем основную версию
       await prisma.person.update({
         where: { id: basePerson.id },
@@ -166,14 +149,16 @@ router.post('/apply-person/:id', authenticateAdmin, async (req, res) => {
         },
       });
 
-     await prisma.person.delete({ where: { id: editPerson.id } });
+     // 2. Применяем браки
+    await applyMarriages(editPerson.id, basePerson.id, editPerson.gender || 'male');
+
+    await prisma.person.delete({ where: { id: editPerson.id } });
+   
 
 return res.json({ message: 'Изменения применены' });
-
   
   }
-
- await prisma.person.create({
+ const newPerson = await prisma.person.create({
          data:{
           ...editPerson,
           id: undefined, 
@@ -184,6 +169,9 @@ return res.json({ message: 'Изменения применены' });
           updatedAt: undefined,
         },
       });
+
+
+await applyMarriages(editPerson.id, newPerson.id, editPerson.gender || 'male');
 
 await prisma.person.delete({ where: { id: editPerson.id } });
 
@@ -225,6 +213,17 @@ router.delete('/reject-person/:id', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
+// Удаляем ВСЕ старые браки этой редактируемой персоны
+     await prisma.marriage.deleteMany({
+        where: {
+          OR: [
+            { husbandId: id,branch: 'edit' },
+            { wifeId: id ,branch: 'edit'}
+          ]
+        }
+      });
+
+
     await prisma.person.delete({
       where: { id, branch: 'edit' },
     });
@@ -247,17 +246,95 @@ router.get('/users', authenticateAdmin, async (req, res) => {
         email: true,
         isAdmin: true,
         isVerified: true,
+        isSuperAdmin:true,
+        isBlocked:true,
         createdAt: true,
-        person: {
-          select: { firstName: true, lastName: true, birthDate: true }
-        }
+        personId:true,
       }
     });
-    res.json(users);
+
+const usersWithFullName = await Promise.all(
+  users.map(async (user) => {
+    let fullName = null;
+    
+    if (user.personId) {
+      const person = await prisma.person.findUnique({
+        where: { id: user.personId, branch: 'base' },
+        select: { firstName: true, lastName: true, patronymic: true }
+      });
+      
+      if (person) {
+        fullName = {
+          firstName: person.firstName,
+          lastName: person.lastName,
+          patronymic: person.patronymic
+        };
+      }
+    }
+    return { ...user, fullName };
+  }))
+  
+
+    res.json( usersWithFullName);
   } catch (error) {
     console.error('Ошибка загрузки пользователей:', error);
     res.status(500).json({ error: 'Не удалось загрузить пользователей' });
   }
 });
+
+router.patch('/users/:userId/block',  authorizeSuperAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const { isBlocked } = req.body;
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+       data :{ isBlocked }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ошибка блокировки пользователя:', error);
+    res.status(500).json({ error: 'Не удалось обновить пользователя' });
+  }
+});
+
+router.patch('/users/:userId/admin', authorizeSuperAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const { isAdmin } = req.body;
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+       data:{ isAdmin }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ошибка изменения прав администратора:', error);
+    res.status(500).json({ error: 'Не удалось обновить пользователя' });
+  }
+});
+
+router.delete('/users/:userId',  authorizeSuperAdmin, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Удаляем связанные данные (опционально)
+    await prisma.person.deleteMany({
+      where: { userId }
+    });
+
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ошибка удаления пользователя:', error);
+    res.status(500).json({ error: 'Не удалось удалить пользователя' });
+  }
+});
+
+
+
+
 
 export default router;

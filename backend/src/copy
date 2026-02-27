@@ -161,3 +161,49 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
 });
 
 export default router;
+
+
+
+
+
+ let husband = null;
+    let wife = null;
+
+    if (marriagesAsHusband.length > 0) wife = marriagesAsHusband[0].wife;
+    if (marriagesAsWife.length > 0) husband = marriagesAsWife[0].husband;
+// ДОБАВЛЯЕМ ДЕТЕЙ СУПРУГАМ
+    if (husband) {
+      const husbandChildrenAsFather = await prisma.person.findMany({
+        where: { fatherId: husband.id, branch: branch as string },
+        include: { photos: true },
+      });
+      const husbandChildrenAsMother = await prisma.person.findMany({
+        where: { motherId: husband.id, branch: branch as string },
+        include: { photos: true },
+      });
+      
+      // Добавляем детей в объект husband
+      husband = {
+        ...husband,
+        childrenAsFather: husbandChildrenAsFather,
+        childrenAsMother: husbandChildrenAsMother,
+      };
+    }
+
+    if (wife) {
+      const wifeChildrenAsFather = await prisma.person.findMany({
+        where: { fatherId: wife.id, branch: branch as string },
+        include: { photos: true },
+      });
+      const wifeChildrenAsMother = await prisma.person.findMany({
+        where: { motherId: wife.id, branch: branch as string },
+        include: { photos: true },
+      });
+      
+      // Добавляем детей в объект wife
+      wife = {
+        ...wife,
+        childrenAsFather: wifeChildrenAsFather,
+        childrenAsMother: wifeChildrenAsMother,
+      };
+    }

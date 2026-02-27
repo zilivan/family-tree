@@ -6,6 +6,8 @@ declare global {
     interface Request {
       userId?: string;
       isAdmin?: boolean;
+      isSuperAdmin?:boolean;
+      isBlocked?:boolean;
     }
   }
 }

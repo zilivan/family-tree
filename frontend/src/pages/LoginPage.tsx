@@ -13,49 +13,56 @@ import {
   Tabs,
   Container,
 } from "@mantine/core";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { MantineProvider } from "../provider/MantineProvider";
+import {
+  useVerifyCodeMutation,
+  useRequestCodeMutation,
+  useAnonymCodeMutation,
+  useSendAdminCodeMutation,
+} from "../api/authApi";
 
-type AuthStep = "email-code" | "email" | "register" | "anonymous"|"admin";
-
-
-interface ApiResponse {
-  token: string;
-  user: {
-    id: string;
-    email?: string;
-    name: string;
-    isAnonymous: boolean;
-    isAdmin:boolean;
-    personId:string;
-  };
-}
+type AuthStep = "email-code" | "email" | "register" | "anonymous" | "admin";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
   const [anonymousCode, setAnonymousCode] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<AuthStep>("email-code");
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
+  const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
+  const [verifyCode] = useVerifyCodeMutation();
+  const [requestCode] = useRequestCodeMutation();
+  const [anonymCode] = useAnonymCodeMutation();
+  const [sendAdminCode] = useSendAdminCodeMutation();
 
-  // Redirect if already authenticated
+  function getMassegError(err: unknown): string {
+    let message = "Неизвестная ошибка";
+
+    if (err && typeof err === "object" && "status" in err) {
+      const error = err as {
+        status: number;
+        data: { error?: string; message?: string };
+      };
+      if (error.data) {
+        message = error.data.error || error.data.message || "Ошибка сервера";
+      } else {
+        message = "Ошибка при отправке кода";
+      }
+    }
+    return message;
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
-
-  // Get API URL from localStorage or use default
-  const getApiUrl = () => {
-    return localStorage.getItem("chat-api-url") || "http://localhost:3000";
-  };
 
   const handleRequestCode = async () => {
     if (!email) {
@@ -67,25 +74,15 @@ const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
     setError(null);
 
     try {
-      const response  = await fetch(`${getApiUrl()}/auth/request-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-     const data = await response.json();
-      if (!response.ok) {
-       
-        throw new Error((data.error || "Невертый email"));
+      const response = await requestCode({ email }).unwrap();
+      if (response) {
+        setPendingPersonId(response.personId);
+        setCodeSent(true);
       } else {
-  
-    setPendingPersonId(data.personId);
-  
-  }
-
-
-      setCodeSent(true);
-    } catch (err: any) {
-      setError(err.message || "Ошибка при отправке кода");
+        throw new Error("Неверный код");
+      }
+    } catch (err) {
+      setError(getMassegError(err));
     } finally {
       setIsLoading(false);
     }
@@ -102,43 +99,28 @@ const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
     setError(null);
 
     try {
-      const response = await fetch(`${getApiUrl()}/auth/verify-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
+      const response = await verifyCode({ email, code }).unwrap();
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Неверный код");
+      if (response) {
+        login(response.token, response.user);
+
+        if (pendingPersonId) {
+          navigate(`/?personId=${pendingPersonId}`);
+        } else {
+          navigate("/");
+        }
+      } else {
+        throw new Error("Неверный код");
       }
-     const result: ApiResponse = await response.json();
-
-
-     if (response.ok) {
-      
-    
-
-      login(result.token, result.user);
-     
-if (pendingPersonId) {
-  navigate(`/?personId=${pendingPersonId}`);
-} else {
-
-  navigate("/");
-}
-}
-    } catch (err: any) {
-      setError(err.message || "Неверный код");
+    } catch (err) {
+      setError(getMassegError(err));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRegister = async () => {
-   
-      navigate("/register");
-   
+    navigate("/register");
   };
 
   const handleAnonymousLogin = async () => {
@@ -150,32 +132,23 @@ if (pendingPersonId) {
     setIsLoading(true);
     setError(null);
 
-  
-
     try {
+      const response = await anonymCode({ code: anonymousCode }).unwrap();
 
-      const response = await fetch(`${getApiUrl()}/auth/anonymous`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: anonymousCode }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Неверный код');
+      if (response) {
+        login(response.token, response.user);
+        navigate("/");
+      } else {
+        throw new Error("Неверный код");
       }
-
-      const result: ApiResponse = await response.json();
-      login(result.token, result.user);
-      navigate('/');
-    } catch (err: any) {
-      setError(err.message || 'Неверный код');
+    } catch (err) {
+      setError(getMassegError(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-const handleAdminLogin = async () => {
+  const handleAdminLogin = async () => {
     if (!adminCode) {
       setError("Пожалуйста, введите код");
       return;
@@ -183,33 +156,24 @@ const handleAdminLogin = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      const response = await sendAdminCode({ code: adminCode }).unwrap();
 
-      const response = await fetch(`${getApiUrl()}/auth/admin-pass`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: adminCode }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Неверный код');
+      if (response) {
+        login(response.token, response.user);
+        navigate("/admin");
+      } else {
+        throw new Error("Неверный код");
       }
-
-      const result: ApiResponse = await response.json();
-      login(result.token, result.user);
-
-
-      navigate('/admin');
-    } catch (err: any) {
-      setError(err.message || 'Неверный код');
+    } catch (err) {
+      setError(getMassegError(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-
-
-
+  const handleLogout = () => {
+    navigate("/main");
+  };
 
   const resetForm = () => {
     setError(null);
@@ -221,8 +185,17 @@ const handleAdminLogin = async () => {
     <MantineProvider>
       <Container size="xs" py="xl">
         <Paper shadow="md" p="xl" radius="md" withBorder>
+          <Button
+            variant="subtle"
+            color="red"
+            radius="xl"
+            onClick={handleLogout}
+          >
+            Выйти
+          </Button>
+
           <Title order={2} ta="center" mb="lg">
-            Вход в чат
+            Вход
           </Title>
 
           {error && (
@@ -248,7 +221,7 @@ const handleAdminLogin = async () => {
               <Tabs.Tab value="email">По email</Tabs.Tab>
               <Tabs.Tab value="register">Регистрация</Tabs.Tab>
               <Tabs.Tab value="anonymous">Аноним</Tabs.Tab>
-               <Tabs.Tab value="admin">Администратор</Tabs.Tab>
+              <Tabs.Tab value="admin">Администратор</Tabs.Tab>
             </Tabs.List>
             {/*  Email + Code */}
             <Tabs.Panel value="email-code">
@@ -365,7 +338,7 @@ const handleAdminLogin = async () => {
                 </Button>
               </Stack>
             </Tabs.Panel>
-{/* Admin Login with Code */}
+            {/* Admin Login with Code */}
             <Tabs.Panel value="admin">
               <Stack>
                 <Text size="sm" c="dimmed" mb="xs">
@@ -387,8 +360,6 @@ const handleAdminLogin = async () => {
                 </Button>
               </Stack>
             </Tabs.Panel>
-
-
           </Tabs>
         </Paper>
       </Container>

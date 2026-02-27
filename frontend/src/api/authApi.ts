@@ -1,10 +1,13 @@
 // src/api/authApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
+import type { User } from "../types/index";
 interface LoginRequest {
   email: string;
 }
-
+interface LogResponse {
+  message: string;
+  personId: string | null;
+}
 interface VerifyCodeRequest {
   email: string;
   code: string;
@@ -12,21 +15,38 @@ interface VerifyCodeRequest {
 
 interface AuthResponse {
   token: string;
-  user: { id: string; email: string; isAdmin: boolean ; personId:string;};
+  user: User;
 }
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000" }),
-  
+
   endpoints: (builder) => ({
-    requestCode: builder.mutation<void, LoginRequest>({
+    requestCode: builder.mutation<LogResponse, LoginRequest>({
       query: (body) => ({
         url: "/auth/request-code",
         method: "POST",
         body,
       }),
     }),
+
+    anonymCode: builder.mutation<AuthResponse, { code: string }>({
+      query: (body) => ({
+        url: "/auth/anonymous",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    sendAdminCode: builder.mutation<AuthResponse, { code: string }>({
+      query: (body) => ({
+        url: "/auth/admin-pass",
+        method: "POST",
+        body,
+      }),
+    }),
+
     verifyCode: builder.mutation<AuthResponse, VerifyCodeRequest>({
       query: (body) => ({
         url: "/auth/verify-code",
@@ -37,4 +57,9 @@ export const authApi = createApi({
   }),
 });
 
-export const { useRequestCodeMutation, useVerifyCodeMutation } = authApi;
+export const {
+  useRequestCodeMutation,
+  useVerifyCodeMutation,
+  useAnonymCodeMutation,
+  useSendAdminCodeMutation,
+} = authApi;

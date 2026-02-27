@@ -1,6 +1,6 @@
 // src/components/ProtectedRoute.tsx
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts";
 import { Loader, Center } from "@mantine/core";
 
 interface ProtectedRouteProps {

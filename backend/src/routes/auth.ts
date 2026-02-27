@@ -6,31 +6,23 @@ import prisma from '../db';
 import { authenticateAdmin } from '../middleware/auth';
 import { sendVerificationCode } from '../utils/email'; // <-- Импортируем
 import { email, z ,ZodError} from 'zod';
-
+import {createMarriages} from '../utils/createMarriages'
+import {dateSchema} from './persons'
 // --- Валидационные схемы Zod ---
 const createPersonSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   patronymic: z.string().optional(),
   email:z.string().optional(),
-birthDate: z
-    .string()
-    .nullable()
-    .optional()
-    .transform((val) => (val === "" ? null : val))
-    .pipe(z.string().datetime().nullable().optional()),
-
-  deathDate: z
-    .string()
-    .nullable()
-    .optional()
-    .transform((val) => (val === "" ? null : val))
-    .pipe(z.string().datetime().nullable().optional()),
+birthDate: dateSchema,
+  deathDate: dateSchema,
   gender: z.enum(['male', 'female', 'other']).optional(),
   phone: z.string().optional().nullable(),
   fatherId: z.string().optional().nullable(), // ← новое
   motherId: z.string().optional().nullable(), // ← новое
- 
+ spouseIds: z.array(z.string()).optional(),
+ parentLastName: z.string().nullable().optional(), // ← ваше поле
+  //photos: z.array(z.string()).optional(),
 });
 
 
@@ -38,8 +30,8 @@ birthDate: z
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 
-const generateToken = (userId: string, isAdmin = false) => {
-  return jwt.sign({ id: userId, isAdmin }, JWT_SECRET, { expiresIn: '7d' });
+const generateToken = (userId: string, isAdmin = false,isSuperAdmin = false,isBlocked = false) => {
+  return jwt.sign({ id: userId, isAdmin,isSuperAdmin ,isBlocked}, JWT_SECRET, { expiresIn: '7d' });
 };
 
 
@@ -76,10 +68,9 @@ router.post('/request-code', async (req, res) => {
     // Отправляем код на email
     await sendVerificationCode(email, code);
     res.json({ message: 'Код подтверждения отправлен на email' ,
-      personId: user.person?.id || null,});
+     personId: user.person?.id || null,});
   } catch (error) {
-    console.error('Ошибка при отправке email:', error);
-    // Важно: не уведомлять пользователя о деталях ошибки, чтобы не раскрывать информацию
+   
     res.status(500).json({ error: 'Не удалось отправить код подтверждения' });
   }
 });
@@ -110,57 +101,34 @@ router.post('/verify-code', async (req, res) => {
     data: { isVerified: true, verifiedAt: new Date() },
   });
 
-  const token = generateToken(user.id, user.isAdmin);
+let fullName = null;
+  
+  if (user.personId) {
+    const person = await prisma.person.findUnique({
+      where: { id: user.personId, branch: 'base' },
+      select: { 
+        firstName: true, 
+        lastName: true, 
+        patronymic: true 
+      }
+    });
+    
+    if (person) {
+      fullName = {
+        firstName: person.firstName,
+        lastName: person.lastName,
+        patronymic: person.patronymic
+      };
+    }
+  }
+
+  const token = generateToken(user.id, user.isAdmin, user.isSuperAdmin,user.isBlocked);
   res.json({
     token,
-    user: { id: user.id, email: user.email, isAdmin: user.isAdmin, personId:user.personId }
+    user: { id: user.id, email: user.email, isAdmin: user.isAdmin, personId:user.personId ,isSuperAdmin:user.isSuperAdmin,isBlocked:user.isBlocked,fullName }
   });
 });
 
-// --- Выдача токена админом (для пользователей без email) ---
-router.post('/admin-generate-token', authenticateAdmin, async (req, res) => {
-  const { email, phone } = req.body;
-
-  if (!email && !phone) {
-    return res.status(400).json({ error: 'Email или телефон обязательны' });
-  }
-
-  // Генерируем одноразовый токен
-  const oneTimeToken = crypto.randomBytes(32).toString('hex');
-
-  await prisma.user.upsert({
-    where: { email: email || phone! },
-    update: { oneTimeToken },
-    create: { email: email || null, phone: phone || null, oneTimeToken },
-  });
-
-  res.json({ oneTimeToken });
-});
-
-// --- Использование одноразового токена ---
-router.post('/use-token', async (req, res) => {
-  const { token: oneTimeToken } = req.body;
-
-  const user = await prisma.user.findFirst({
-    where: { oneTimeToken },
-  });
-
-  if (!user) {
-    return res.status(400).json({ error: 'Неверный одноразовый токен' });
-  }
-
-  // Удаляем токен (одноразовый)
-  await prisma.user.update({
-    where: { id: user.id },
-     data:{ oneTimeToken: null, isVerified: true },
-  });
-
-  const jwtToken = generateToken(user.id, user.isAdmin);
-  res.json({
-    token: jwtToken,
-    user: { id: user.id, email: user.email || undefined, phone: user.phone || undefined, isAdmin: user.isAdmin }
-  });
-});
 
 // --- Вход администратора ---
 router.post('/admin-pass', (req, res) => {
@@ -185,7 +153,7 @@ router.post('/anonymous', (req, res) => {
   }
 
   const token = generateToken('anonymous');
-  res.json({ token, user: { id: 'anonymous', isAdmin: false } });
+  res.json({ token, user: { id: 'anonymous', isAdmin: false,isAnonymous: true } });
  
 });
 
@@ -194,7 +162,7 @@ router.post('/register', async (req, res) => {
 
 
   const data = createPersonSchema.parse(req.body);
-  const { email, ...newPerson } = data;
+  const { email,spouseIds, ...newPerson } = data;
 
 
   const { firstName, lastName, patronymic} = newPerson;
@@ -239,6 +207,12 @@ router.post('/register', async (req, res) => {
         status: 'PENDING',
       },
     });
+
+if (newPerson.gender && spouseIds && spouseIds.length > 0) {
+   createMarriages(pendingPerson.id,spouseIds,newPerson.gender );
+  }
+
+
 
     await prisma.pendingRegistration.create({
        data :{ email, personId: pendingPerson.id } });

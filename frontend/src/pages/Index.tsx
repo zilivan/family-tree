@@ -1,7 +1,7 @@
 import { MantineProvider } from "../provider/MantineProvider";
 import { MantineChatWidget } from "../components/MantineChatWidget";
 import { Button, Box, Text, Stack, Paper, Group } from "@mantine/core";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { useNavigate } from "react-router-dom";
 import FamilyViewPage from "./FamilyViewPage";
 import AdminPanelPage from "./AdminPanelPage";
@@ -13,10 +13,17 @@ const Index = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+
+    navigate("/main");
   };
 
-
+  const isSuperAdmin = user?.isSuperAdmin === true ? true : false;
+  const isAnonymous = user?.id === "anonymous";
+  const isBlocked = user?.isBlocked === true;
+  const fullName = user?.fullName
+    ? `${user.fullName.lastName} ${user.fullName.firstName} ${user.fullName.patronymic}`.trim()
+    : "Пользователь";
+  localStorage.setItem("chat_guest_name", fullName);
 
   return (
     <MantineProvider>
@@ -29,8 +36,7 @@ const Index = () => {
                   Мини-чат
                 </Text>
                 <Text size="sm" c="dimmed">
-                  Привет, {user?.name || "Пользователь"}!
-          
+                  Привет, {fullName}!
                 </Text>
               </Box>
               <Button
@@ -46,9 +52,10 @@ const Index = () => {
         </Paper>
 
         <MantineChatWidget />
-        {user?.isAdmin && <AdminPanelPage />}
-        <FamilyViewPage />
-
+        {(user?.isAdmin || isSuperAdmin) && (
+          <AdminPanelPage isSuperAdmin={isSuperAdmin} />
+        )}
+        <FamilyViewPage isAnonymous={isAnonymous} isBlocked={isBlocked} />
       </div>
     </MantineProvider>
   );

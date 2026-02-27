@@ -1,0 +1,349 @@
+
+// class EventEmitter
+type EventHandler <T extends unknown[]> = (...args:T) => void ;
+
+class EventEmitter {
+ private events:Map<string,EventHandler<unknown[]>[]> = new Map
+
+subscribe <T extends unknown[]> (
+    eventName:string,
+     header:(...args:T) => void) : {unsubscribe():void}
+      {
+
+
+if (!this.events.has(eventName)){
+   this.events.set(eventName,[])
+      }
+const handlers =  this.events.get(eventName)!
+handlers.push(header as EventHandler<unknown[] >)
+
+return {
+  unsubscribe: () => {
+const index = handlers.indexOf( header as EventHandler<unknown[] >)
+   if(index !== -1 ){
+   handlers.splice(index,1)
+                }
+             }
+ }
+};
+
+emit <T extends unknown[] > (eventName:string, ...args:T ):void  {
+
+const handlers =  this.events.get(eventName)
+if(!handlers) return
+for ( const handler of handlers )  {
+handler(...args)
+
+}};
+}
+
+
+//    function debouncedFetch
+
+function debouncedFetch (delay:number = 300) {
+let timeoutId: ReturnType <typeof setTimeout> | null  = null 
+let  abortController : AbortController | null = null
+
+return async(
+    url: string, 
+    options?:RequestInit & {signal?:AbortSignal}  
+):Promise<Response>  {
+
+if (abortController ){
+   abortController.abort()
+}
+if (timeoutId ){
+clearTimeout(timeoutId)
+
+}
+abortController = new AbortController
+let cleanup = ()=> {};
+if (options?.signal) {
+
+const onExternalAbort = () => abortController!.abort()
+options.signal.addEventListener("abort",onExternalAbort)
+ cleanup = () => {
+ options.signal!.removeEventListener("abort",onExternalAbort)   
+};
+
+}
+
+return new Promise<Response>((resolve, reject) => {
+timeoutId = setTimeout( async()=> {
+try {
+const response = await fetch(url,{
+    ...options,
+    signal:abortController!.signal
+});
+
+resolve(response);
+
+}catch(error){
+if (error instanceof DOMException && error.name ==="AbortError" ) {
+reject(new Error ("stop user"))
+}else{
+  reject(error)  
+}   
+}finally{
+ cleanup();   
+timeoutId = null;
+abortController = null;
+}
+},delay)
+
+})
+}}
+
+// huk useLocalStorageState
+import { useCallback, useState, useEffect, useReducer } from "react";
+
+type SetValue <T> = (value: T | ((prev:T)=>T)) => void
+
+export function useLocalStorageState <T>  (
+   key :string,
+   initialValue:T
+): [T , SetValue <T>]  {
+   
+const readValue = useCallback(():T =>{
+
+if(typeof window === 'undefined' || typeof window.localStorage ==='undefined') {
+  return  initialValue
+}
+try{
+const item = window.localStorage.getItem( key)
+return item ? JSON.parse(item) : initialValue
+}catch(error){
+ console.log(`ERROR parse of key "${key}": `,error);  
+return initialValue
+}},[key,initialValue]) 
+
+const [storedValue,setStoredValue] = useState<T>(readValue)
+
+
+const writeValue = (value:  T | ((prev:T)=>T)  ) => {
+
+if(typeof window === 'undefined' || typeof window.localStorage ==='undefined') {
+return 
+}
+try{
+const saveValue =  value instanceof  Function ? value(storedValue) : value
+window.localStorage.setItem(key,JSON.stringify(saveValue))
+  setStoredValue(saveValue)
+}catch(error) {
+console.log(`ERROR save in localStorage of key "${key}": `,error);  
+
+}}
+
+
+useEffect(()=>{
+const callStorageEventChange =(event:StorageEvent)=>{
+if (event.key === key && event.newValue !== null){
+
+   try {
+setStoredValue(JSON.parse(event.newValue))
+      
+   }catch(error){
+
+console.log(`ERROR parse of key "${key}": `,error);  
+
+   }
+}
+}
+window.addEventListener('storage',callStorageEventChange)
+
+return () => {
+window.removeEventListener('storage',callStorageEventChange)
+
+}
+},[key])
+
+return [storedValue,writeValue]
+
+   }
+
+//   hook  useDebound
+
+import {useState,useEffect,useRef} from 'react'
+
+export function useDebounce<T>(value: T, delay: number): T {
+
+const [valueDebounsed,setvVlueDebounsed] = useState<T>(value)
+
+const timeout = useRef < ReturnType < typeof setTimeout> |null > (null)
+
+useEffect(()=> {
+
+if(timeout.current !== null) {
+clearTimeout(timeout.current)
+}
+timeout.current = setTimeout(() => {
+   
+   setvVlueDebounsed(value) },delay
+ )
+
+return () => {
+
+ if(timeout.current !== null) {
+clearTimeout(timeout.current)
+} 
+}
+},[value,delay])
+
+return valueDebounsed
+
+}
+
+// оптимизация
+ import  {memo} from 'react'
+
+ interface UserListProps {
+users:Array< {id:string,name:string,email:string}>;
+onEdit:(id:string) => void ;
+ }
+const UserList =  memo(( {users,onEdit}:UserListProps) =>  {
+  return (
+    <div>
+      {users.map(user => (
+        <UserCard key={user.id} user={user} onEdit={onEdit} />
+      ))}
+    </div>
+  )
+});
+
+import  {memo,useCallback} from 'react'
+
+interface UserCardProps {
+user:{id:string,name:string,email:string};
+onEdit:(id:string) => void ;
+}
+
+ export const UserCard = memo(({user,onEdit}:UserCardProps)  => {
+
+const handOnEdit = useCallback( () => {
+onEdit(user.id);
+},[onEdit,user.id] );
+
+return(
+<div>
+<h3> {user.name} </h3>
+<p>{user.email} </p> 
+<button
+onClick = {handOnEdit }
+>Edit</button>  
+</div>
+)})
+
+
+// Form 
+
+// types
+interface FormState {
+  field1: string;
+  field2: string;
+  field3: string;
+  field4: string;
+  field5: string;
+  field6: string;
+  field7: string;
+  field8: string;
+  field9: string;
+  field10: string;
+}
+
+type FormAction = 
+  | { type: 'SET_FIELD'; field: keyof FormState; value: string }
+  | { type: 'RESET' };
+
+
+// reducer
+ const initialFormState:FormState = {
+ field1: '',
+  field2: '',
+  field3: '',
+  field4: '',
+  field5: '',
+  field6: '',
+  field7:  '',
+  field8:  '',
+  field9:  '',
+  field10:  ''
+}
+
+const formReducer = (state: FormState, action: FormAction): FormState => {
+   switch(action.type) {
+   case "SET_FIELD" : return {
+      ...state,[action.field]:action.value
+   }
+   case "RESET":  return initialFormState
+   default: return  state
+    };
+   };
+
+// компонент поля
+interface FieldProps {
+  label: keyof FormState;
+  value: string;
+  onChange: ( value: string) => void;
+}
+ export const Field = memo(({ label, value, onChange }: FieldProps) => { 
+   return(
+<div>
+<label>{label}</label> 
+<input
+type = "text"
+value={value}
+placeholder={`Input volume:${label}`}
+onChange ={(e) => onChange(e.target.value) }
+>
+</div>
+)});
+
+// основная форма
+
+import {useReducer,useCallback} from 'react'
+
+export const  OptimizedForm = () => { 
+
+ const [formState,dispatch ]  = useReducer(formReducer,initialFormState )
+
+const configField = Object.keys(initialFormState) as (keyof FormState)[];
+
+
+const handleOnchage = useCallback((fild:keyof FormState) =>{
+return (volume:string)=> {
+dispatch({type: 'SET_FIELD',field:fild,value:volume })
+}},[])
+
+const handleReset = useCallback(()=>{
+  dispatch({type: 'RESET'})
+},[])
+
+return (
+
+<form>
+{configField.map(fild => (
+<Field
+key= {fild}
+label= {fild}
+value ={formState[fild]}
+onChange={handleOnchage(fild)}
+/>
+))}
+
+<button
+type="button"
+onClick={handleReset}
+>
+RESET
+</button>
+<button
+type="submit"
+>
+SEND FORM
+</button>
+</form>
+)
+ };
+
+
+ 

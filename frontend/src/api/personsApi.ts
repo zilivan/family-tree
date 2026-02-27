@@ -1,13 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Person } from '../types/index'
+import type { Person, Photo } from "../types/index";
 
 export interface FamilyResponse {
   currentPerson: Person;
-  husband: Person | null;
-  wife: Person | null;
   branch: string;
-  otherPartnersHusband: Person[]; // ← добавьте, если используете
-  otherPartnersWife: Person[];    
+  marriagesAsHusband: Person[];
+  marriagesAsWife: Person[];
+  childrenAsFather: Person[];
+  childrenAsMother: Person[];
+  spouses: Person[];
+  photos: Photo[];
 }
 export interface CreatePersonInput {
   firstName: string;
@@ -15,12 +17,12 @@ export interface CreatePersonInput {
   patronymic: string | null;
   birthDate?: string | null; // ISO string, например: "1990-01-15T00:00:00.000Z"
   deathDate?: string | null;
-  gender?: 'male' | 'female' |  null | undefined;
+  gender?: string | null;
   phone?: string | null;
   fatherId?: string | null;
-    motherId?: string | null;
-    photos?: string[];
-   spouseIds?: string [];
+  motherId?: string | null;
+  photos?: string[];
+  spouseIds?: string[] | null;
 }
 export interface SearchPersonResult {
   id: string;
@@ -29,7 +31,10 @@ export interface SearchPersonResult {
   patronymic: string | null;
   birthDate: string | null;
 }
-
+interface UploadPhotoResponse {
+  message: string;
+  photoUrl: string;
+}
 
 export const personsApi = createApi({
   reducerPath: "personsApi",
@@ -41,68 +46,130 @@ export const personsApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ["Persons", "Family"],
   endpoints: (builder) => ({
-
     getPerson: builder.query<Person, { id: string; branch?: string }>({
-  query: ({ id, branch = 'base' }) => {
-    const params = new URLSearchParams();
-    if (branch) params.append('branch', branch);
-    return `/persons/${id}?${params.toString()}`;
-  },
-}),
+      query: ({ id, branch = "base" }) => {
+        const params = new URLSearchParams();
+        if (branch) params.append("branch", branch);
+        return `/persons/${id}?${params.toString()}`;
+      },
+      providesTags: ["Persons"],
+    }),
 
-getFamily: builder.query<FamilyResponse, { personId: string; branch?: string }>({
-  query: ({ personId, branch = 'base' }) => `/persons/${personId}/family?branch=${branch}`,
-}),
+    getFamily: builder.query<
+      FamilyResponse,
+      { personId: string; branch?: string }
+    >({
+      query: ({ personId, branch = "base" }) =>
+        `/persons/${personId}/family?branch=${branch}`,
+      providesTags: ["Family"],
+    }),
 
-  createPerson: builder.mutation<Person,CreatePersonInput >({
+    createPerson: builder.mutation<Person, CreatePersonInput>({
       query: (newPersonData) => ({
-        url: '/persons',
-        method: 'POST',
+        url: "/persons",
+        method: "POST",
         body: newPersonData,
       }),
       // Опционально: автоматически обновлять кэш после создания
-      // invalidatesTags: ['Persons'],
+      invalidatesTags: ["Persons"],
     }),
-    uploadPerson: builder.mutation<Person ,{ id: string, data:CreatePersonInput } >({
-      query: ( {id, data}) => ({
+    uploadPerson: builder.mutation<
+      Person,
+      { id: string; data: CreatePersonInput }
+    >({
+      query: ({ id, data }) => ({
         url: `/persons/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
       // Опционально: автоматически обновлять кэш после создания
-       //invalidatesTags: ['Persons'],
+      invalidatesTags: ["Persons"],
     }),
 
+    searchPersons: builder.query<
+      SearchPersonResult[],
+      { query: string; branch: string; selectGender: string | null }
+    >({
+      query: ({ query, branch, selectGender }) =>
+        `/persons/search?q=${encodeURIComponent(query)}&branch=${branch}&selectGender=${selectGender}`,
+    }),
 
-searchPersons: builder.query<SearchPersonResult[], { query: string; branch: string; selectGender:string; }>({
-  query: ({ query, branch, selectGender }) => `/persons/search?q=${encodeURIComponent(query)}&branch=${branch}&selectGender=${selectGender}`,
-}),
+    getPersonsFullName: builder.query<
+      SearchPersonResult[],
+      { ids: string[]; branch: string }
+    >({
+      query: ({ ids, branch }) => {
+        const params = new URLSearchParams();
+        ids.forEach((id) => params.append("ids", id.toString()));
+        return `/persons/fullname/?${params.toString()}&branch=${branch}`;
+      },
+    }),
 
-getPersonsFullName: builder.query<SearchPersonResult[], { ids: string[]; branch: string }>({
-  
-  query: ({ ids, branch }) => {
+    updatePersonLock: builder.mutation<
+      void,
+      { personId: string; isLocked: boolean }
+    >({
+      query: ({ personId, isLocked }) => ({
+        url: `/persons/${personId}/lock`,
+        method: "PATCH",
+        body: { isLocked },
+      }),
+      invalidatesTags: ["Persons"],
+    }),
+    deletePerson: builder.mutation<void, string>({
+      query: (personId) => ({
+        url: `/persons/${personId}`,
+        method: "DELETE",
+      }),
 
-    const params = new URLSearchParams();
-ids.forEach(id => params.append('ids', id.toString()));
- if (branch) params.append('branch', branch);
-   return  `/persons/fullname/?${params.toString()}`;
-  },
-
-}),
+      //invalidatesTags: ['Persons']
+    }),
 
     uploadPhoto: builder.mutation<
-      { photoUrl: string },
-      { personId: string; formData: FormData }
+      UploadPhotoResponse,
+      { id: string; formData: FormData }
     >({
-      query: ({ personId, formData }) => ({
-        url: `/persons/${personId}/photos`,
+      query: ({ id, formData }) => ({
+        url: `/persons/${id}/photos`,
         method: "POST",
         body: formData,
       }),
     }),
+    restorePhoto: builder.mutation<
+      { success: true; message: string },
+      { personId: string; photoId: string }
+    >({
+      query: ({ personId, photoId }) => ({
+        url: `/persons/${personId}/photos/${photoId}/restore`,
+        method: "POST",
+      }),
+
+      invalidatesTags: ["Persons"],
+    }),
+
+    deletePhoto: builder.mutation<void, { personId: string; photoId: string }>({
+      query: ({ personId, photoId }) => ({
+        url: `/persons/${personId}/photos/${photoId}`,
+        method: "DELETE",
+      }),
+
+      invalidatesTags: ["Persons"],
+    }),
   }),
 });
 
-export const { useGetPersonQuery, useGetFamilyQuery, useUploadPhotoMutation,useCreatePersonMutation,useSearchPersonsQuery,useUploadPersonMutation,useGetPersonsFullNameQuery } =
-  personsApi;
+export const {
+  useGetPersonQuery,
+  useGetFamilyQuery,
+  useUploadPhotoMutation,
+  useCreatePersonMutation,
+  useSearchPersonsQuery,
+  useUploadPersonMutation,
+  useGetPersonsFullNameQuery,
+  useDeletePhotoMutation,
+  useRestorePhotoMutation,
+  useUpdatePersonLockMutation,
+  useDeletePersonMutation,
+} = personsApi;

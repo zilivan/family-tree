@@ -1,5 +1,3 @@
-// src/utils/astrology.ts
-
 export function calculateZodiacSign(birthDate: Date): string {
   const day = birthDate.getDate();
   const month = birthDate.getMonth() + 1; // getMonth() возвращает 0–11
