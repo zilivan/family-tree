@@ -3,10 +3,15 @@ import { Router } from 'express';
 import prisma from '../db';
 import { authenticateToken, authenticateAdmin,authorizeSuperAdmin } from '../middleware/auth';
 import { z ,ZodError} from 'zod';
+import multer from 'multer';
+import { uploadPhotoToSupabase, deletePhotoFromSupabase } from '../storage/supabase';
 import { Prisma } from '@prisma/client'; // <-- Теперь можно использовать типы Prisma
  import {createMarriages} from '../utils/createMarriages'
 import { upload } from '../middleware/upload'
 
+interface PhotoRequest extends Request {
+  photoUrl?: string;
+}
 
 const router = Router();
 
@@ -641,32 +646,33 @@ router.patch('/:personId/lock', authenticateToken,authorizeSuperAdmin, async (re
 
 
 // --- Загрузить фото для персоны (только авторизованный пользователь) ---
-
-
 router.post('/:id/photos', authenticateToken, upload.single('photo'), async (req, res) => {
- 
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Файл не загружен' });
     }
 
     const { id } = req.params;
-    const filePath = `/uploads/photos/${req.file.filename}`;
 
-    // Сохраняем в базу
+    // 🔹 Загружаем файл в Supabase
+    const photoUrl = await uploadPhotoToSupabase(req.file.buffer, req.file.originalname);
+
+    // Сохраняем ссылку в базу
     const photo = await prisma.photo.create({
-       data:{
-        url: filePath,
-        personId: id
+      data: {
+        url: photoUrl,
+        personId:id,
       }
     });
 
-    res.json({ photoUrl: filePath });
+     res.json({ photoUrl: photoUrl });
   } catch (error) {
     console.error('Ошибка загрузки фото:', error);
     res.status(500).json({ error: 'Не удалось загрузить фото' });
   }
 });
+
+
 
 router.delete('/:personId/photos/:photoId', authenticateToken, async (req, res) => {
   try {
@@ -683,7 +689,8 @@ router.delete('/:personId/photos/:photoId', authenticateToken, async (req, res) 
         deletedAt: new Date()
       }
     });
-
+    // Опционально: удалить из Supabase (раскомментируйте, если нужно)
+   // await deletePhotoFromSupabase(photo.url);
     
     res.json({ success: true, message: 'Фото перемещено в корзину' });
   } catch (error) {
