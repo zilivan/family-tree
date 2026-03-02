@@ -15,6 +15,7 @@ import { IconPlus } from "@tabler/icons-react";
 import PersonCard from "../components/person/PersonCard";
 import { PersonSearchSelect } from "../components/form/PersonSearchSelect";
 import { PersonForm } from "../components/form/PersonForm";
+import { FamilyView } from "../components/FamilyView";
 
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetFamilyQuery } from "../api/personsApi";
@@ -81,8 +82,6 @@ export default function FamilyViewPage({
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  //useEffect(() => {}, [isAddModalOpen]);
-
   const refetchAll = () => {
     refetchEditFamily();
     refetchBaseFamily();
@@ -101,6 +100,7 @@ export default function FamilyViewPage({
           showSearchIcon={true}
           showplaceholder={"Поиск по имени или фамилии"}
         />
+        <FamilyView onChange={(personId) => handleSelectPerson(personId)} />
       </Stack>
     );
   }
@@ -272,6 +272,7 @@ export default function FamilyViewPage({
             {error}
           </Alert>
         )}
+
         <Group justify="center" mb="lg">
           <PersonSearchSelect
             value={searchQuery}
@@ -282,6 +283,7 @@ export default function FamilyViewPage({
             showSearchIcon={true}
             showplaceholder={"Поиск по имени или фамилии"}
           />
+          <FamilyView onChange={(personId) => handleSelectPerson(personId)} />
 
           <Select
             label=""
@@ -351,9 +353,11 @@ export default function FamilyViewPage({
               branch={branch}
               isSpouses={isSpouses}
             />
+            {/* ПЕРСОНА   В РЕДАКТОРЕ */}
             {branch === "edit" && currentEditPerson && (
               <PersonCard
                 person={currentEditPerson}
+                currentPersonPhoto={currentPerson.photos}
                 refetchAll={refetchAll}
                 onSuccess={(success) => setSuccess(success)}
                 setError={(error) => setError(error)}

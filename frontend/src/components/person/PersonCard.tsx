@@ -30,10 +30,11 @@ import {
   calculateZodiacSign,
   calculateChineseZodiac,
 } from "../../utils/astrology";
-import type { Person } from "../../types";
+import type { Person, Photo } from "../../types";
 
 interface PersonCardProps {
   person: Person;
+  currentPersonPhoto?: Photo[];
   isSpouses?: boolean;
   isEditCard?: boolean;
   isMainEditCard?: boolean;
@@ -52,6 +53,7 @@ interface PersonCardProps {
 
 export default function PersonCard({
   person,
+  currentPersonPhoto,
   isSpouses = false,
   isEditCard = false,
   isMainEditCard = false,
@@ -83,6 +85,7 @@ export default function PersonCard({
   const [rejectChanges] = useRejectPersonChangesMutation();
   const [updatePersonLock] = useUpdatePersonLockMutation();
   const [deletePerson] = useDeletePersonMutation();
+  const photos = currentPersonPhoto ? currentPersonPhoto : person.photos;
 
   function calculateAge(birthDate: Date, deathDate?: Date): number {
     const today = deathDate ? new Date(deathDate) : new Date();
@@ -112,12 +115,13 @@ export default function PersonCard({
         return "лет";
     }
   }
-
+  // Размер высоты поля семейной пары
   const heightCard = user?.isSuperAdmin
-    ? "950px"
+    ? "100%"
     : user?.isAdmin
-      ? "1050px"
-      : "850px";
+      ? "100%"
+      : "100%";
+
   function getFullName(person: Person): string {
     const lastName = person?.lastName ? person.lastName : "";
     const firstName = person?.firstName ? person.firstName : "";
@@ -279,7 +283,7 @@ export default function PersonCard({
             </div>
 
             <PhotoGallery
-              photoObjects={person.photos}
+              photoObjects={photos}
               borderColor={borderColor}
 
               // onPhotoAdd и onPhotoRemove можно добавить позже через пропсы
@@ -321,9 +325,9 @@ export default function PersonCard({
               onClick={() => onSpouseNavigate?.("next")}
             >
               {" "}
-              <IconChevronLeft width={100} />
-              <Text size="xs" ta="center">
-                {spouseCount}
+              <IconChevronLeft width={80} />
+              <Text size="cm" ta="center">
+                {spouseCount} брака
               </Text>
             </Button>
           )}

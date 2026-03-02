@@ -66,13 +66,17 @@ export const personsApi = createApi({
       providesTags: ["Family"],
     }),
 
+    getFamilyTreeData: builder.query({
+      query: () => "/persons/family-tree",
+    }),
+
     createPerson: builder.mutation<Person, CreatePersonInput>({
       query: (newPersonData) => ({
         url: "/persons",
         method: "POST",
         body: newPersonData,
       }),
-      // Опционально: автоматически обновлять кэш после создания
+
       invalidatesTags: ["Persons"],
     }),
     uploadPerson: builder.mutation<
@@ -84,7 +88,7 @@ export const personsApi = createApi({
         method: "PUT",
         body: data,
       }),
-      // Опционально: автоматически обновлять кэш после создания
+
       invalidatesTags: ["Persons"],
     }),
 
@@ -163,6 +167,7 @@ export const personsApi = createApi({
 export const {
   useGetPersonQuery,
   useGetFamilyQuery,
+  useGetFamilyTreeDataQuery,
   useUploadPhotoMutation,
   useCreatePersonMutation,
   useSearchPersonsQuery,

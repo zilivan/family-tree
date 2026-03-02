@@ -57,7 +57,7 @@ const updatePersonSchema = z.object({
 
 
 // --- Получить всех персон ---
-router.get('/', async (req, res) => {
+router.get('/allperson', authenticateToken, async (req, res) => {
    const { branch = 'base' } = req.query;
   try {
     const persons = await prisma.person.findMany({
@@ -87,6 +87,41 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch persons' });
   }
 });
+// Получить семью для визуализации
+
+router.get('/family-tree', async (req, res) => {
+  try {
+    // Получаем всех персон из base-ветки
+    const persons = await prisma.person.findMany({
+      where: { branch: 'base' },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        patronymic: true,
+        gender: true,
+        fatherId: true,
+        motherId: true,
+      }
+    });
+
+    // Получаем все браки из base-ветки
+    const marriages = await prisma.marriage.findMany({
+      where: { branch: 'base' },
+      select: {
+        husbandId: true,
+        wifeId: true
+      }
+    });
+
+    res.json({ persons, marriages });
+  } catch (error) {
+    console.error('Ошибка загрузки семейного дерева:', error);
+    res.status(500).json({ error: 'Не удалось загрузить данные' });
+  }
+});
+
+
 // --Поиск персон
 router.get('/search', async (req, res) => {
   const { q, branch = 'base', selectGender = null } = req.query;
@@ -479,6 +514,8 @@ router.delete('/:id', authorizeSuperAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete person' });
   }
 });
+
+
 
 // Получить семью
 
