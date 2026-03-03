@@ -29,7 +29,6 @@ export default function PhotoGallery({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasPhotos = photoObjects.length > 0;
-
   const handleDoubleClick = (url: string) => {
     setFullscreenPhoto(url);
   };
