@@ -1,5 +1,5 @@
 
-// backend/prisma.config.ts
+
 import 'dotenv/config'; // <-- Обязательно для загрузки .env
 import { defineConfig, env } from "prisma/config";
 

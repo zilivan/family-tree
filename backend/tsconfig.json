@@ -11,6 +11,6 @@
     "typeRoots": ["./src/types", "./node_modules/@types"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/generated"],
   "exclude": ["node_modules"]
 }
