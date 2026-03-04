@@ -1,51 +1,52 @@
 // src/routes/admin.ts
-import { Router } from 'express';
-import prisma from '../db';
-import { authenticateAdmin,authorizeSuperAdmin } from '../middleware/auth';
-import { sendVerificationCode } from '../utils/email';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
-import { console } from 'inspector';
- import {applyMarriages} from '../utils/applyMarriages'
+import { Router } from "express";
+import prisma from "../db";
+import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth";
+import { sendVerificationCode } from "../utils/email";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { console } from "inspector";
+import { applyMarriages } from "../utils/applyMarriages";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
 // Получить все ожидающие подтверждения персоны
-router.get('/pending-persons', authenticateAdmin, async (req, res) => {
+router.get("/pending-persons", authenticateAdmin, async (req, res) => {
   try {
     const pendingPersons = await prisma.person.findMany({
-  where: {
-    status: 'PENDING',
-    
-    pendingRegistration: { isNot: null }
-  },
-  include: {
-    pendingRegistration: true,
-  },
-  orderBy: { createdAt: 'desc' },
-});
+      where: {
+        status: "PENDING",
+
+        pendingRegistration: { isNot: null },
+      },
+      include: {
+        pendingRegistration: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
     res.json(pendingPersons);
   } catch (error) {
-    console.error('Ошибка загрузки ожидающих персон:', error);
-    res.status(500).json({ error: 'Не удалось загрузить список' });
+    console.error("Ошибка загрузки ожидающих персон:", error);
+    res.status(500).json({ error: "Не удалось загрузить список" });
   }
 });
 
 // Подтвердить персону
-router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
+router.post("/confirm-person/:id", authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     // Проверяем, существует ли персона в статусе PENDING
     const person = await prisma.person.findUnique({
-      where: { id, status: 'PENDING' },
+      where: { id, status: "PENDING" },
     });
 
     if (!person) {
-      return res.status(404).json({ error: 'Персона не найдена или уже подтверждена' });
+      return res
+        .status(404)
+        .json({ error: "Персона не найдена или уже подтверждена" });
     }
-
 
     // Получаем email из pendingRegistration
     const pendingReg = await prisma.pendingRegistration.findUnique({
@@ -55,39 +56,31 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
     // Обновляем статус персоны
     await prisma.person.update({
       where: { id },
-       data: { status: 'CONFIRMED',
-               branch:'base',
-               modeStatus:'CREATE',
-        },
+      data: { status: "CONFIRMED", branch: "base", modeStatus: "CREATE" },
     });
-    await applyMarriages(person.id, person.id, person.gender || 'male');
+    await applyMarriages(person.id, person.id, person.gender || "male");
 
     if (!pendingReg) {
-
-      return (
-      res.json({ 
-      message: 'Персона подтверждена',
-      
-    }))
+      return res.json({
+        message: "Персона подтверждена",
+      });
     }
-
 
     // Создаём пользователя
     const user = await prisma.user.create({
-       data :{
+      data: {
         email: pendingReg.email,
-      personId: id,
+        personId: id,
         isVerified: true,
-        phone:person.phone ?  person.phone : null,
+        phone: person.phone ? person.phone : null,
       },
     });
-
 
     // Генерируем код подтверждения
     const code = crypto.randomInt(100000, 999999).toString();
     await prisma.user.update({
       where: { id: user.id },
-       data :{ verificationCode: code },
+      data: { verificationCode: code },
     });
 
     // Отправляем код
@@ -98,147 +91,136 @@ router.post('/confirm-person/:id', authenticateAdmin, async (req, res) => {
       where: { personId: id },
     });
 
-    res.json({ 
-      message: 'Пользователь  подтвержден, код отправлен на email',
-      email: pendingReg.email 
+    res.json({
+      message: "Пользователь  подтвержден, код отправлен на email",
+      email: pendingReg.email,
     });
   } catch (error) {
-    res.status(500).json({error: 'Пользователь  не подтвержден'});
+    res.status(500).json({ error: "Пользователь  не подтвержден" });
   }
 });
 
-
-
-router.post('/apply-person/:id', authenticateAdmin, async (req, res) => {
+router.post("/apply-person/:id", authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     // Находим редактируемую версию
     const editPerson = await prisma.person.findFirst({
-      where: { id, branch: 'edit' },
+      where: { id, branch: "edit" },
     });
 
     if (!editPerson) {
-      return res.status(404).json({ error: 'Редактируемая версия не найдена' });
+      return res.status(404).json({ error: "Редактируемая версия не найдена" });
     }
-
 
     // Проверяем, есть ли основная версия
     if (editPerson.modeStatus === "EDIT" && editPerson.modeStatusEditId) {
+      const basePerson = await prisma.person.findFirst({
+        where: { id: editPerson.modeStatusEditId, branch: "base" },
+      });
 
-
-    const basePerson = await prisma.person.findFirst({
-      where: { id : editPerson.modeStatusEditId, branch: 'base' },
-    });
-
-    if (!basePerson) {
-        return res.status(404).json({ error: 'Основная персона не найдена' });
+      if (!basePerson) {
+        return res.status(404).json({ error: "Основная персона не найдена" });
       }
- 
+
       // Обновляем основную версию
       await prisma.person.update({
         where: { id: basePerson.id },
         data: {
-
           ...editPerson,
-           id: undefined, 
-          branch: 'base',
-          modeStatus:'CREATE',
-          status: 'CONFIRMED',
+          id: undefined,
+          branch: "base",
+          modeStatus: "CREATE",
+          status: "CONFIRMED",
           createdAt: undefined,
           updatedAt: undefined,
         },
       });
 
-     // 2. Применяем браки
-    await applyMarriages(editPerson.id, basePerson.id, editPerson.gender || 'male');
+      // 2. Применяем браки
+      await applyMarriages(
+        editPerson.id,
+        basePerson.id,
+        editPerson.gender || "male",
+      );
+
+      await prisma.person.delete({ where: { id: editPerson.id } });
+
+      return res.json({ message: "Изменения применены" });
+    }
+    const newPerson = await prisma.person.create({
+      data: {
+        ...editPerson,
+        id: undefined,
+        branch: "base",
+        modeStatus: "CREATE",
+        status: "CONFIRMED",
+        createdAt: undefined,
+        updatedAt: undefined,
+      },
+    });
+
+    await applyMarriages(
+      editPerson.id,
+      newPerson.id,
+      editPerson.gender || "male",
+    );
 
     await prisma.person.delete({ where: { id: editPerson.id } });
-   
-
-return res.json({ message: 'Изменения применены' });
-  
-  }
- const newPerson = await prisma.person.create({
-         data:{
-          ...editPerson,
-          id: undefined, 
-          branch: 'base',
-          modeStatus:'CREATE',
-          status: 'CONFIRMED',
-          createdAt: undefined,
-          updatedAt: undefined,
-        },
-      });
-
-
-await applyMarriages(editPerson.id, newPerson.id, editPerson.gender || 'male');
-
-await prisma.person.delete({ where: { id: editPerson.id } });
 
     // Удаляем редактируемую версию
-   
-    res.json({ message:'Новая персона создана' })
-  } catch (error) {
 
-    console.error('Ошибка применения изменений:', error);
+    res.json({ message: "Новая персона создана" });
+  } catch (error) {
+    console.error("Ошибка применения изменений:", error);
     res.status(500).json({ error: "Ошибка обработки запроса" });
   }
 });
 
-
-
 // Получить все персоны в ветке edit
-router.get('/edit-persons', authenticateAdmin, async (req, res) => {
+router.get("/edit-persons", authenticateAdmin, async (req, res) => {
   try {
     const editPersons = await prisma.person.findMany({
-      where: { branch: 'edit' },
+      where: { branch: "edit" },
       include: {
         photos: true,
         creator: { select: { email: true } }, // кто создал
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     res.json(editPersons);
   } catch (error) {
-    console.error('Ошибка загрузки редактируемых персон:', error);
-    res.status(500).json({ error: 'Не удалось загрузить список' });
+    console.error("Ошибка загрузки редактируемых персон:", error);
+    res.status(500).json({ error: "Не удалось загрузить список" });
   }
 });
 
-
-
-
 // Отклонить изменения (удалить из edit)
-router.delete('/reject-person/:id', authenticateAdmin, async (req, res) => {
+router.delete("/reject-person/:id", authenticateAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
-// Удаляем ВСЕ старые браки этой редактируемой персоны
-     await prisma.marriage.deleteMany({
-        where: {
-          OR: [
-            { husbandId: id,branch: 'edit' },
-            { wifeId: id ,branch: 'edit'}
-          ]
-        }
-      });
-
+    // Удаляем ВСЕ старые браки этой редактируемой персоны
+    await prisma.marriage.deleteMany({
+      where: {
+        OR: [
+          { husbandId: id, branch: "edit" },
+          { wifeId: id, branch: "edit" },
+        ],
+      },
+    });
 
     await prisma.person.delete({
-      where: { id, branch: 'edit' },
+      where: { id, branch: "edit" },
     });
-    res.json({ message: 'Изменения отклонены' });
+    res.json({ message: "Изменения отклонены" });
   } catch (error) {
-    console.error('Ошибка отклонения изменений:', error);
-    res.status(500).json({ error: 'Не удалось отклонить изменения' });
+    console.error("Ошибка отклонения изменений:", error);
+    res.status(500).json({ error: "Не удалось отклонить изменения" });
   }
 });
 
-
-
-
 // Получить всех пользователей (опционально)
-router.get('/users', authenticateAdmin, async (req, res) => {
+router.get("/users", authenticateAdmin, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -246,95 +228,91 @@ router.get('/users', authenticateAdmin, async (req, res) => {
         email: true,
         isAdmin: true,
         isVerified: true,
-        isSuperAdmin:true,
-        isBlocked:true,
+        isSuperAdmin: true,
+        isBlocked: true,
         createdAt: true,
-        personId:true,
-      }
+        personId: true,
+      },
     });
 
-const usersWithFullName = await Promise.all(
-  users.map(async (user) => {
-    let fullName = null;
-    
-    if (user.personId) {
-      const person = await prisma.person.findUnique({
-        where: { id: user.personId, branch: 'base' },
-        select: { firstName: true, lastName: true, patronymic: true }
-      });
-      
-      if (person) {
-        fullName = {
-          firstName: person.firstName,
-          lastName: person.lastName,
-          patronymic: person.patronymic
-        };
-      }
-    }
-    return { ...user, fullName };
-  }))
-  
+    const usersWithFullName = await Promise.all(
+      users.map(async (user) => {
+        let fullName = null;
 
-    res.json( usersWithFullName);
+        if (user.personId) {
+          const person = await prisma.person.findUnique({
+            where: { id: user.personId, branch: "base" },
+            select: { firstName: true, lastName: true, patronymic: true },
+          });
+
+          if (person) {
+            fullName = {
+              firstName: person.firstName,
+              lastName: person.lastName,
+              patronymic: person.patronymic,
+            };
+          }
+        }
+        return { ...user, fullName };
+      }),
+    );
+
+    res.json(usersWithFullName);
   } catch (error) {
-    console.error('Ошибка загрузки пользователей:', error);
-    res.status(500).json({ error: 'Не удалось загрузить пользователей' });
+    console.error("Ошибка загрузки пользователей:", error);
+    res.status(500).json({ error: "Не удалось загрузить пользователей" });
   }
 });
 
-router.patch('/users/:userId/block',  authorizeSuperAdmin, async (req, res) => {
+router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
   const { isBlocked } = req.body;
 
   try {
     await prisma.user.update({
       where: { id: userId },
-       data :{ isBlocked }
+      data: { isBlocked },
     });
     res.json({ success: true });
   } catch (error) {
-    console.error('Ошибка блокировки пользователя:', error);
-    res.status(500).json({ error: 'Не удалось обновить пользователя' });
+    console.error("Ошибка блокировки пользователя:", error);
+    res.status(500).json({ error: "Не удалось обновить пользователя" });
   }
 });
 
-router.patch('/users/:userId/admin', authorizeSuperAdmin, async (req, res) => {
+router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
   const { isAdmin } = req.body;
 
   try {
     await prisma.user.update({
       where: { id: userId },
-       data:{ isAdmin }
+      data: { isAdmin },
     });
     res.json({ success: true });
   } catch (error) {
-    console.error('Ошибка изменения прав администратора:', error);
-    res.status(500).json({ error: 'Не удалось обновить пользователя' });
+    console.error("Ошибка изменения прав администратора:", error);
+    res.status(500).json({ error: "Не удалось обновить пользователя" });
   }
 });
 
-router.delete('/users/:userId',  authorizeSuperAdmin, async (req, res) => {
+router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
 
   try {
     // Удаляем связанные данные (опционально)
     await prisma.person.deleteMany({
-      where: { userId }
+      where: { userId },
     });
 
     await prisma.user.delete({
-      where: { id: userId }
+      where: { id: userId },
     });
     res.json({ success: true });
   } catch (error) {
-    console.error('Ошибка удаления пользователя:', error);
-    res.status(500).json({ error: 'Не удалось удалить пользователя' });
+    console.error("Ошибка удаления пользователя:", error);
+    res.status(500).json({ error: "Не удалось удалить пользователя" });
   }
 });
-
-
-
-
 
 export default router;

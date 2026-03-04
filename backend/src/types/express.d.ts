@@ -1,13 +1,13 @@
 // src/types/express.d.ts
-import 'express';
+import "express";
 
 declare global {
   namespace Express {
     interface Request {
       userId?: string;
       isAdmin?: boolean;
-      isSuperAdmin?:boolean;
-      isBlocked?:boolean;
+      isSuperAdmin?: boolean;
+      isBlocked?: boolean;
     }
   }
 }

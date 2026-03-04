@@ -1,32 +1,36 @@
 // backend/src/middleware/auth.ts
 
 // src/middleware/auth.ts
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 declare global {
   namespace Express {
     interface Request {
       userId?: string;
       isAdmin?: boolean;
-      isSuperAdmin?:boolean;
-      isBlocked?:boolean;
+      isSuperAdmin?: boolean;
+      isBlocked?: boolean;
     }
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader?.split(' ')[1];
+export const authenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'Токен отсутствует' });
+    return res.status(401).json({ error: "Токен отсутствует" });
   }
 
   jwt.verify(token, JWT_SECRET, (err, user: any) => {
-    if (err) return res.status(403).json({ error: 'Неверный токен' });
+    if (err) return res.status(403).json({ error: "Неверный токен" });
     req.userId = user.id;
     req.isAdmin = user.isAdmin;
     req.isSuperAdmin = user.isSuperAdmin;
@@ -34,29 +38,28 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   });
 };
 
-export const authenticateAdmin = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   authenticateToken(req, res, () => {
-   
-    if (!req.isAdmin && !req.isSuperAdmin ) {
-      return res.status(403).json({ error: 'Требуется админ' });
+    if (!req.isAdmin && !req.isSuperAdmin) {
+      return res.status(403).json({ error: "Требуется админ" });
     }
     next();
   });
 };
 
-export const authorizeSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+export const authorizeSuperAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   authenticateToken(req, res, () => {
-  if (!req.isSuperAdmin) {
-
-    return res.status(403).json({ error: 'Требуются права суперадмина' });
-  }
-  next();
-})
+    if (!req.isSuperAdmin) {
+      return res.status(403).json({ error: "Требуются права суперадмина" });
+    }
+    next();
+  });
 };
-
-
-
-
-
-
-
