@@ -1,6 +1,6 @@
 // src/routes/admin.ts
 import { Router } from "express";
-import prisma from "../db";
+import prisma from "../lib/prisma";
 import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth";
 import { sendVerificationCode } from "../utils/email";
 import crypto from "crypto";
