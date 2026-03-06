@@ -8,7 +8,7 @@
     "migrate": "prisma migrate dev --name init",
     "build": "tsc",
     "prisma": "prisma studio",
-    "start": "tsx src/server.ts",
+    "start": "node dist/server.js", 
     "postinstall": "npx prisma generate",
     "migrate:deploy": "npx prisma migrate deploy",
     "start:prod": "npm run migrate:deploy && npm start",

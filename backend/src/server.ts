@@ -1,11 +1,10 @@
-
 import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import cors from "cors";
 import routes from "./routes";
-import {prisma} from "./lib/prisma";
+import { prisma } from "./lib/prisma";
 //import { authenticateToken } from './middleware/auth'; // <-- Импортируем middleware
 
 import * as path from "path";
