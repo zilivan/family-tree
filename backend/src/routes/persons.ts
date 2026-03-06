@@ -1,24 +1,13 @@
 // backend/src/routes/persons.ts
 import { Router } from "express";
-import prisma from "../db";
-import {
-  authenticateToken,
-  authenticateAdmin,
-  authorizeSuperAdmin,
-} from "../middleware/auth";
+import { prisma } from "../lib/prisma";
+import { authenticateToken, authorizeSuperAdmin } from "../middleware/auth";
 import { z, ZodError } from "zod";
-import multer from "multer";
-import {
-  uploadPhotoToSupabase,
-  deletePhotoFromSupabase,
-} from "../storage/supabase";
-import { Prisma } from "@prisma/client"; // <-- Теперь можно использовать типы Prisma
+
+import { uploadPhotoToSupabase } from "../storage/supabase";
+
 import { createMarriages } from "../utils/createMarriages";
 import { upload } from "../middleware/upload";
-
-interface PhotoRequest extends Request {
-  photoUrl?: string;
-}
 
 const router = Router();
 
@@ -43,7 +32,13 @@ const createPersonSchema = z.object({
   birthDate: dateSchema,
   deathDate: dateSchema,
   gender: z.enum(["male", "female"]).optional(),
-  phone: z.string().optional().nullable(),
+  phone: z
+    .string()
+    .min(5, "Слишком короткий номер")
+    .regex(/^\+?[\d\s\-()]+$/, "Неверный формат телефона")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   fatherId: z.string().optional().nullable(), // ← новое
   motherId: z.string().optional().nullable(), // ← новое
   spouseIds: z.array(z.string()).optional(),
@@ -58,7 +53,13 @@ const updatePersonSchema = z.object({
   birthDate: dateSchema,
   deathDate: dateSchema,
   gender: z.enum(["male", "female"]).optional(),
-  phone: z.string().optional().nullable(),
+  phone: z
+    .string()
+    .min(5, "Слишком короткий номер")
+    .regex(/^\+?[\d\s\-()]+$/, "Неверный формат телефона")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   fatherId: z.string().optional().nullable(), // ← новое
   motherId: z.string().optional().nullable(), // ← новое
   spouseIds: z.array(z.string()).optional(), // ← ваше поле
@@ -67,9 +68,9 @@ const updatePersonSchema = z.object({
 
 // --- Получить всех персон ---
 router.get("/allperson", authenticateToken, async (req, res) => {
-  const { branch = "base" } = req.query;
   try {
     const persons = await prisma.person.findMany({
+      where: { branch: "base" },
       include: {
         father: true,
         mother: true,
@@ -91,9 +92,11 @@ router.get("/allperson", authenticateToken, async (req, res) => {
       },
     });
     res.json(persons);
-  } catch (error) {
-    console.error("Ошибка при получении персон:", error);
-    res.status(500).json({ error: "Failed to fetch persons" });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Ошибка при получении персон";
+    //console.error("Ошибка при получении персон:", error);
+    res.status(500).json({ error: message });
   }
 });
 // Получить семью для визуализации
@@ -132,7 +135,7 @@ router.get("/family-tree", async (req, res) => {
 
 // --Поиск персон
 router.get("/search", async (req, res) => {
-  const { q, branch = "base", selectGender = null } = req.query;
+  const { q, selectGender = null } = req.query;
 
   if (!q || typeof q !== "string") {
     return res.json([]);
@@ -159,15 +162,14 @@ router.get("/search", async (req, res) => {
     });
 
     res.json(persons);
-  } catch (error) {
-    console.error("Ошибка поиска:", error);
+  } catch {
     res.status(500).json([]);
   }
 });
 
 // --- Получить список полных имен  по ID ---
 router.get("/fullname", async (req, res) => {
-  const { ids, branch = "base" } = req.query;
+  const { ids } = req.query;
 
   // Валидация и преобразование ids
   let idArray: string[] = [];
@@ -205,9 +207,11 @@ router.get("/fullname", async (req, res) => {
     const ordered = idArray.map((id) => personMap.get(id)).filter(Boolean);
 
     res.json(ordered);
-  } catch (error) {
-    console.error("Ошибка при получении персоны:", error);
-    res.status(500).json({ error: "Failed to fetch person" });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Ошибка при получении персон";
+    //console.error("Ошибка при получении персоны:", error);
+    res.status(500).json({ error: message });
   }
 });
 
@@ -363,24 +367,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
     });
 
     if (!basePerson) {
-      return res.status(404).json({ error: "Person not found" });
-    }
-
-    //  Определяем parentLastName
-    let parentLastName: string | null = null;
-
-    // Если пол "female" и есть отец — берем его фамилию
-    if (validatedData.gender === "female" && validatedData.fatherId) {
-      const father = await prisma.person.findUnique({
-        where: { id: validatedData.fatherId, branch: "base" },
-        select: { lastName: true },
-      });
-
-      parentLastName = father?.lastName || null;
-    }
-    // Если пол не "female" или нет отца — null
-    else {
-      parentLastName = null;
+      return res.status(404).json({ error: "Персоне не найдена" });
     }
 
     let editPerson = await prisma.person.findFirst({
@@ -447,12 +434,12 @@ router.put("/:id", authenticateToken, async (req, res) => {
   } catch (error) {
     if (error instanceof ZodError) {
       return res.status(400).json({
-        error: "Validation failed",
+        error: "Неверный формат данных",
         details: error.issues,
       });
     }
-    console.error("Ошибка при обновлении персоны:", error);
-    res.status(500).json({ error: "Failed to update person" });
+    // console.error("Ошибка при обновлении персоны:", error);
+    res.status(500).json({ error: "Ошибка обновления персоны" });
   }
 });
 
@@ -501,9 +488,9 @@ router.delete("/:id", authorizeSuperAdmin, async (req, res) => {
     });
 
     res.status(204).send();
-  } catch (error) {
-    console.error("Ошибка при удалении персоны:", error);
-    res.status(500).json({ error: "Failed to delete person" });
+  } catch {
+    //console.error("Ошибка при удалении персоны:", error);
+    res.status(500).json({ error: "Ошибка удаления персоны" });
   }
 });
 
@@ -601,9 +588,9 @@ router.get("/:id/family", async (req, res) => {
       marriagesAsWife,
       spouses: spousesWithChildren,
     });
-  } catch (error) {
-    console.error("Error fetching family:", error);
-    res.status(500).json({ error: "Failed to fetch family" });
+  } catch {
+    //console.error("Error fetching family:", error);
+    res.status(500).json({ error: "Ошибка запроса семьи" });
   }
 });
 
@@ -644,7 +631,7 @@ router.post(
       );
 
       // Сохраняем ссылку в базу
-      const photo = await prisma.photo.create({
+      await prisma.photo.create({
         data: {
           url: photoUrl,
           personId: id,
@@ -652,8 +639,8 @@ router.post(
       });
 
       res.json({ photoUrl: photoUrl });
-    } catch (error) {
-      console.error("Ошибка загрузки фото:", error);
+    } catch {
+      //console.error("Ошибка загрузки фото:", error);
       res.status(500).json({ error: "Не удалось загрузить фото" });
     }
   },
@@ -667,7 +654,7 @@ router.delete(
       const { personId, photoId } = req.params;
 
       // Удаляем из базы
-      const photo = await prisma.photo.update({
+      await prisma.photo.update({
         where: {
           id: photoId,
           personId: personId,
@@ -681,8 +668,8 @@ router.delete(
       // await deletePhotoFromSupabase(photo.url);
 
       res.json({ success: true, message: "Фото перемещено в корзину" });
-    } catch (error) {
-      console.error("Ошибка удаления фото:", error);
+    } catch {
+      //console.error("Ошибка удаления фото:", error);
       res.status(500).json({ error: "Не удалось удалить фото" });
     }
   },
@@ -696,7 +683,7 @@ router.post(
     try {
       const { personId, photoId } = req.params;
 
-      const photo = await prisma.photo.update({
+      await prisma.photo.update({
         where: {
           id: photoId,
           personId: personId,
@@ -708,8 +695,8 @@ router.post(
       });
 
       res.json({ success: true, message: "Фото восстановлено" });
-    } catch (error) {
-      console.error("Ошибка восстановления фото:", error);
+    } catch {
+      //console.error("Ошибка восстановления фото:", error);
       res.status(500).json({ error: "Не удалось восстановить фото" });
     }
   },

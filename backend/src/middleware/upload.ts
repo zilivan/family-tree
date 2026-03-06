@@ -1,6 +1,11 @@
 import multer from "multer";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { uploadPhotoToSupabase } from "../storage/supabase";
+
+interface RequestWithPhoto extends Request {
+  photoUrl?: string;
+  file?: Express.Multer.File;
+}
 
 // 🔹 Используем memoryStorage — файл будет в буфере, а не на диске
 const storage = multer.memoryStorage();
@@ -31,9 +36,9 @@ export const upload = multer({
  * Добавляет photoUrl в req.body после успешной загрузки
  */
 export const uploadToSupabase = async (
-  req: Request,
+  req: RequestWithPhoto,
   res: Response,
-  next: Function,
+  next: NextFunction,
 ) => {
   try {
     const file = (req as Express.Request).file;
@@ -49,13 +54,15 @@ export const uploadToSupabase = async (
     );
 
     // Добавляем URL в запрос для использования в роуте
-    (req as any).photoUrl = photoUrl;
+    req.photoUrl = photoUrl;
 
     next();
-  } catch (error: any) {
-    console.error("Ошибка загрузки в Supabase:", error);
+  } catch (error: unknown) {
+    // console.error("Ошибка загрузки в Supabase:", error)
+    const message =
+      error instanceof Error ? error.message : "Не удалось загрузить фото";
     res.status(500).json({
-      error: error.message || "Не удалось загрузить фото",
+      error: message,
     });
   }
 };

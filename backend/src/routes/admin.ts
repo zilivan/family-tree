@@ -1,15 +1,14 @@
-// src/routes/admin.ts
 import { Router } from "express";
-import prisma from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth";
 import { sendVerificationCode } from "../utils/email";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
+
 import { console } from "inspector";
 import { applyMarriages } from "../utils/applyMarriages";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
+//const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
 // Получить все ожидающие подтверждения персоны
 router.get("/pending-persons", authenticateAdmin, async (req, res) => {
@@ -95,7 +94,7 @@ router.post("/confirm-person/:id", authenticateAdmin, async (req, res) => {
       message: "Пользователь  подтвержден, код отправлен на email",
       email: pendingReg.email,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Пользователь  не подтвержден" });
   }
 });

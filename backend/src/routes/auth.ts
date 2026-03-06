@@ -2,10 +2,9 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import prisma from "../db";
-import { authenticateAdmin } from "../middleware/auth";
+import { prisma } from "../lib/prisma";
 import { sendVerificationCode } from "../utils/email"; // <-- Импортируем
-import { email, z, ZodError } from "zod";
+import { z } from "zod";
 import { createMarriages } from "../utils/createMarriages";
 import { dateSchema } from "./persons";
 // --- Валидационные схемы Zod ---
@@ -13,11 +12,21 @@ const createPersonSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   patronymic: z.string().optional(),
-  email: z.string().optional(),
+  email: z
+    .string()
+    .email("Некорректный формат email")
+    .optional()
+    .or(z.literal("")),
   birthDate: dateSchema,
   deathDate: dateSchema,
   gender: z.enum(["male", "female", "other"]).optional(),
-  phone: z.string().optional().nullable(),
+  phone: z
+    .string()
+    .min(5, "Слишком короткий номер")
+    .regex(/^\+?[\d\s\-()]+$/, "Неверный формат телефона")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   fatherId: z.string().optional().nullable(), // ← новое
   motherId: z.string().optional().nullable(), // ← новое
   spouseIds: z.array(z.string()).optional(),
@@ -78,7 +87,7 @@ router.post("/request-code", async (req, res) => {
       message: "Код подтверждения отправлен на email",
       personId: user.person?.id || null,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Не удалось отправить код подтверждения" });
   }
 });
@@ -239,9 +248,11 @@ router.post("/register", async (req, res) => {
       message: "Запрос отправлен администратору",
       status: "PENDING",
     });
-  } catch (error: any) {
-    console.error("Ошибка регистрации:", error);
-    res.status(500).json({ error: error.message || "Неизвестная ошибка" });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Неизвестная ошибка";
+    //console.error("Ошибка регистрации:", error);
+    res.status(500).json({ error: message });
   }
 });
 

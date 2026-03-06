@@ -1,9 +1,12 @@
-// backend/src/middleware/auth.ts
-
-// src/middleware/auth.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+interface JwtPayload {
+  id: string;
+  isAdmin?: boolean;
+  isSuperAdmin?: boolean;
+  isBlocked?: boolean;
+}
 declare global {
   namespace Express {
     interface Request {
@@ -29,8 +32,9 @@ export const authenticateToken = (
     return res.status(401).json({ error: "Токен отсутствует" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user: any) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ error: "Неверный токен" });
+    const user = decoded as JwtPayload;
     req.userId = user.id;
     req.isAdmin = user.isAdmin;
     req.isSuperAdmin = user.isSuperAdmin;

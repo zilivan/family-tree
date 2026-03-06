@@ -1,4 +1,5 @@
 // backend/src/db.ts
+/*
 import { PrismaPg } from "@prisma/adapter-pg"; // <-- Оставить
 import { PrismaClient } from "@prisma/client"; // <-- Вернуть к стандартному
 import { Pool } from "pg"; // <-- Оставить
@@ -16,3 +17,4 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 export default prisma; // Экспортируем готовый экземпляр
+*/

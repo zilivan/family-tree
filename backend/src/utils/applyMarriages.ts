@@ -1,4 +1,4 @@
-import prisma from "../db";
+import {prisma} from "../lib/prisma";
 
 export const applyMarriages = async (
   editPersonId: string, // ID редактируемой персоны

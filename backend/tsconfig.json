@@ -12,7 +12,8 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "types": ["node"],
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "project": "./tsconfig.json"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

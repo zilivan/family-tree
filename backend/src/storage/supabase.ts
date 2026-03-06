@@ -3,6 +3,18 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY!; // Только для бэкенда!
 
+const getContentType = (filename: string): string => {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const types: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+  };
+  return types[ext || "jpg"] || "image/jpeg";
+};
+
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BUCKET_NAME = "photos";
@@ -19,16 +31,16 @@ export const uploadPhotoToSupabase = async (
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExtension}`;
   const filePath = `photos/${fileName}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(filePath, fileBuffer, {
-      contentType: "image/jpeg",
+      contentType: getContentType(originalName),
       cacheControl: "3600",
       upsert: false,
     });
 
   if (error) {
-    console.error("Ошибка загрузки в Supabase:", error);
+    //console.error("Ошибка загрузки в Supabase:", error);
     throw new Error(`Не удалось загрузить фото: ${error.message}`);
   }
 
@@ -43,28 +55,21 @@ export const uploadPhotoToSupabase = async (
 export const deletePhotoFromSupabase = async (
   photoUrl: string,
 ): Promise<void> => {
-  try {
-    // Извлекаем путь из публичного URL Supabase
-    // Пример URL: https://xxx.supabase.co/storage/v1/object/public/photos/path/to/file.jpg
-    const url = new URL(photoUrl);
-    const pathParts = url.pathname.split("/storage/v1/object/public/photos/");
+  // Извлекаем путь из публичного URL Supabase
+  // Пример URL: https://xxx.supabase.co/storage/v1/object/public/photos/path/to/file.jpg
+  const url = new URL(photoUrl);
+  const pathParts = url.pathname.split("/storage/v1/object/public/photos/");
 
-    if (pathParts.length < 2) {
-      throw new Error("Некорректный URL фото");
-    }
+  if (pathParts.length < 2) {
+    throw new Error("Некорректный URL фото");
+  }
 
-    const filePath = pathParts[1];
+  const filePath = pathParts[1];
 
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove([filePath]);
+  const { error } = await supabase.storage.from(BUCKET_NAME).remove([filePath]);
 
-    if (error) {
-      console.error("Ошибка удаления из Supabase:", error);
-      throw error;
-    }
-  } catch (error) {
-    console.error("Ошибка удаления фото:", error);
-    // Не выбрасываем ошибку, чтобы не блокировать удаление из БД
+  if (error) {
+    // console.error("Ошибка удаления из Supabase:", error);
+    throw error;
   }
 };

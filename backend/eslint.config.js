@@ -1,20 +1,27 @@
 
-// backend/eslint.config.js
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
-  // Игноры
+  // 🔹 Глобальные игноры
   {
-    ignores: ['dist/**', 'node_modules/**', '*.js', 'eslint.config.js']
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      '*.js',
+      'eslint.config.js',
+      'prisma.config.ts',
+      '.prisma/**'
+    ]
   },
   
-  // Основная конфигурация
+  // 🔹 Базовая конфигурация для TypeScript файлов
   {
     files: ['src/**/*.ts'],
     
+    // Настройки языка
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -28,19 +35,25 @@ export default tseslint.config(
       }
     },
     
+    // 🔹 Регистрация плагинов (обязательно!)
     plugins: {
+      '@typescript-eslint': tseslint.plugin,
       prettier: prettierPlugin
     },
     
+    // 🔹 Правила
     rules: {
-      // Базовые правила
+      
+      // Базовые рекомендации ESLint
       ...js.configs.recommended.rules,
+      
+      // Рекомендации TypeScript
       ...tseslint.configs.recommended.rules,
       
-      // Prettier
+      // Prettier как правило ESLint
       'prettier/prettier': 'error',
       
-      // TypeScript
+      // 🔹 Настройки правил TypeScript
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { 
@@ -48,13 +61,18 @@ export default tseslint.config(
         'varsIgnorePattern': '^_'
       }],
       
-      // Node.js
+      // Node.js окружение
       'no-console': 'off',
       
-      // Express: async в роутах
+      // Express: разрешаем async в роутах
       '@typescript-eslint/no-misused-promises': ['error', {
-        'checksVoidReturn': { 'attributes': false }
-      }]
+        'checksVoidReturn': { 
+          'attributes': false ,
+          'arguments': false
+        }
+        
+      }],
+       'no-undef': 'off',
     }
   }
 );

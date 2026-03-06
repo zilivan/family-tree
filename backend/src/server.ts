@@ -1,11 +1,11 @@
-// backend/src/server.ts
+
 import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import cors from "cors";
 import routes from "./routes";
-import prisma from "./db"; // <-- Импортируем prisma
+import {prisma} from "./lib/prisma";
 //import { authenticateToken } from './middleware/auth'; // <-- Импортируем middleware
 
 import * as path from "path";
@@ -72,15 +72,6 @@ app.post("/messages", async (req, res) => {
     console.error("Ошибка отправки сообщения:", error);
     res.status(500).json({ error: "Не удалось отправить сообщение" });
   }
-});
-
-app.get("/", (req, res) => {
-  res.json({ message: "Backend is running!!" });
-  console.log("Backend is running");
-});
-app.get("/anonymous", (req, res) => {
-  res.json({ message: "Backend is anonymous " });
-  console.log("Backend is anonymous");
 });
 
 app.listen(PORT, () => {
