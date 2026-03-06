@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma";
-import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth";
-import { sendVerificationCode } from "../utils/email";
+import { prisma } from "../lib/prisma.js";
+import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth.js";
+import { sendVerificationCode } from "../utils/email.js";
 import crypto from "crypto";
 
 import { console } from "inspector";
-import { applyMarriages } from "../utils/applyMarriages";
+import { applyMarriages } from "../utils/applyMarriages.js";
 
 const router = Router();
 //const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";

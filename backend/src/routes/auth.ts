@@ -2,11 +2,11 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { prisma } from "../lib/prisma";
-import { sendVerificationCode } from "../utils/email"; // <-- Импортируем
+import { prisma } from "../lib/prisma.js";
+import { sendVerificationCode } from "../utils/email.js"; // <-- Импортируем
 import { z } from "zod";
-import { createMarriages } from "../utils/createMarriages";
-import { dateSchema } from "./persons";
+import { createMarriages } from "../utils/createMarriages.js";
+import { dateSchema } from "./persons.js";
 // --- Валидационные схемы Zod ---
 const createPersonSchema = z.object({
   firstName: z.string().min(1),

@@ -1,13 +1,13 @@
 // backend/src/routes/persons.ts
 import { Router } from "express";
-import { prisma } from "../lib/prisma";
-import { authenticateToken, authorizeSuperAdmin } from "../middleware/auth";
+import { prisma } from "../lib/prisma.js";
+import { authenticateToken, authorizeSuperAdmin } from "../middleware/auth.js";
 import { z, ZodError } from "zod";
 
-import { uploadPhotoToSupabase } from "../storage/supabase";
+import { uploadPhotoToSupabase } from "../storage/supabase.js";
 
-import { createMarriages } from "../utils/createMarriages";
-import { upload } from "../middleware/upload";
+import { createMarriages } from "../utils/createMarriages.js";
+import { upload } from "../middleware/upload.js";
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import multer from "multer";
 import { Request, Response, NextFunction } from "express";
-import { uploadPhotoToSupabase } from "../storage/supabase";
+import { uploadPhotoToSupabase } from "../storage/supabase.js";
 
 interface RequestWithPhoto extends Request {
   photoUrl?: string;

@@ -1,8 +1,8 @@
 // backend/src/routes/index.ts
 import { Router } from "express";
-import authRoutes from "./auth";
-import personRoutes from "./persons";
-import adminRoutes from "./admin";
+import authRoutes from "./auth.js";
+import personRoutes from "./persons.js";
+import adminRoutes from "./admin.js";
 
 const router = Router();
 
