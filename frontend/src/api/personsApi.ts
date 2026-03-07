@@ -41,6 +41,7 @@ export const personsApi = createApi({
   reducerPath: "personsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: `${API_BASE_URL}/api`,
+    credentials: "include",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) headers.set("Authorization", `Bearer ${token}`);

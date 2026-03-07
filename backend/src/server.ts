@@ -12,29 +12,41 @@ import * as path from "path";
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ALLOWED_ORIGINS = [
-  "http://localhost:5173",
-  "http://localhost:3000",
+  "http://localhost:5173", // Vite dev
+  "http://localhost:4173", // Vite preview
+  "https://family-tree-frontend.onrender.com",
+  "https://family-tree-frontend-e4h2.onrender.com", // ← ВАШ ТЕКУЩИЙ ДОМЕН
   "https://family-tree-api.onrender.com",
-  "https://family-tree-frontend.onrender.com", // ← Новый домен фронтенда
 ];
 
 // Разрешаем запросы с фронтенда
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      // Разрешить запросы без origin (мобильные приложения, curl, Postman)
+      if (!origin) {
+        console.log("✅ CORS: запрос без origin (curl/postman)");
+        return callback(null, true);
+      }
+
       if (ALLOWED_ORIGINS.includes(origin)) {
+        console.log(`✅ CORS разрешён для: ${origin}`);
         callback(null, true);
       } else {
-        console.warn(`❌ CORS blocked: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
+        console.warn(`❌ CORS заблокирован для: ${origin}`);
+        callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
-    credentials: true,
+    credentials: true, // Разрешить cookies и заголовок Authorization
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 86400, // Кэшировать preflight 24 часа
   }),
 );
+
+// 🔹 Обработчик OPTIONS запросов (для preflight)
+app.options("*", cors()); // Глобальный обработчик preflight
 
 app.use(express.json());
 
