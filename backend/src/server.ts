@@ -11,6 +11,7 @@ import * as path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.NODE_ENV === "development" ? "localhost" : "0.0.0.0";
 const ALLOWED_ORIGINS = [
   "http://localhost:5173", // Vite dev
   "http://localhost:4173", // Vite preview
@@ -44,9 +45,6 @@ app.use(
     maxAge: 86400, // Кэшировать preflight 24 часа
   }),
 );
-
-// 🔹 Обработчик OPTIONS запросов (для preflight)
-app.options("*", cors()); // Глобальный обработчик preflight
 
 app.use(express.json());
 
