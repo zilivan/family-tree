@@ -38,8 +38,8 @@ app.get("/messages", async (req, res) => {
       orderBy: { createdAt: "asc" },
     });
     res.json(messages);
-  } catch (error) {
-    console.error("Ошибка загрузки чата:", error);
+  } catch {
+    //console.error("Ошибка загрузки чата:", error);
     res.status(500).json({ error: "Не удалось загрузить сообщения" });
   }
 });
@@ -67,8 +67,8 @@ app.post("/messages", async (req, res) => {
       },
     });
     res.status(201).json(message);
-  } catch (error) {
-    console.error("Ошибка отправки сообщения:", error);
+  } catch  {
+    //console.error("Ошибка отправки сообщения:", error);
     res.status(500).json({ error: "Не удалось отправить сообщение" });
   }
 });
