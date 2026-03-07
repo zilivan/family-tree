@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TextInput, Button, Title, Alert, Group } from "@mantine/core";
 import { PersonForm } from "../components/form/PersonForm";
 import type { CreatePersonInput } from "../api/personsApi";
+import { API_BASE_URL } from "../lib/apiConfig";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -10,9 +11,6 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState<string>("");
 
   const navigate = useNavigate();
-  const getApiUrl = () => {
-    return localStorage.getItem("chat-api-url") || "http://localhost:3000";
-  };
 
   const handleSubmit = async (payload: CreatePersonInput) => {
     const { firstName, lastName, patronymic } = payload;
@@ -23,7 +21,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, email }),

@@ -30,13 +30,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-/*
- <Route path="/login" element={<LoginPage />} />
-       <Route element={<ProtectedRoute />}>
-      <Route path="/register" element={<RegisterPage />} />
-       <Route path="/tree" element={<FamilyViewPage />} />
-      <Route path="/" element={<Index />} />
-      <Route path="/person/:id" element={<PersonPage />} />
-       </Route>
-*/

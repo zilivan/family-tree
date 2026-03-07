@@ -14,6 +14,7 @@ import {
   Badge,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { API_BASE_URL } from "../lib/apiConfig";
 
 interface Message {
   id: string;
@@ -64,16 +65,15 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
     name: getOrCreateGuestName(),
     isGuest: true,
   };
-  const apiUrl = "http://localhost:3000";
-  // Fetch messages from API
+
   const fetchMessages = async () => {
-    if (!apiUrl) return;
+    if (!API_BASE_URL) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`${apiUrl}/messages`);
+      const response = await fetch(`${API_BASE_URL}/messages`);
       if (!response.ok) throw new Error("Ошибка загрузки сообщений");
       const data = await response.json();
       setMessages(data);
@@ -86,13 +86,13 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
 
   // Send message to API
   const sendMessage = async () => {
-    if (!newMessage.trim() || !apiUrl) return;
+    if (!newMessage.trim() || !API_BASE_URL) return;
 
     setIsSending(true);
     setError(null);
 
     try {
-      const response = await fetch(`${apiUrl}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,12 +118,12 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
 
   // Poll for new messages
   useEffect(() => {
-    if (isOpen && apiUrl) {
+    if (isOpen && API_BASE_URL) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, apiUrl]);
+  }, [isOpen, API_BASE_URL]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -242,7 +242,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
         style={{ flex: 1, padding: "12px" }}
         viewportRef={scrollAreaRef}
       >
-        {!apiUrl ? (
+        {!API_BASE_URL ? (
           <Box ta="center" py="xl">
             <Text c="dimmed" size="sm">
               Укажите URL вашего API сервера
@@ -345,7 +345,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={!apiUrl || isSending}
+            disabled={!API_BASE_URL || isSending}
             radius="xl"
             styles={{
               input: {
@@ -359,7 +359,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
             variant="filled"
             color="blue"
             onClick={sendMessage}
-            disabled={!newMessage.trim() || !apiUrl || isSending}
+            disabled={!newMessage.trim() || !API_BASE_URL || isSending}
             loading={isSending}
           >
             <svg

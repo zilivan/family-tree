@@ -109,7 +109,7 @@ app.get("/", (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       health: "/api/health",
-      auth: "/api/auth",
+      auth: "/auth",
       persons: "/api/persons",
     },
   });
@@ -231,32 +231,3 @@ app.post("/messages", async (req, res) => {
 });
 
 export default app;
-/*
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-*/
-/*
-async function startServer() {
-  try {
-    // Подключение к БД
-    await prisma.$connect();
-    console.log('✅ Подключено к базе данных');
-
-    // Запуск Express
-    const server = app.listen(3000, () => {
-      console.log('🚀 Сервер запущен на http://localhost:3000');
-    });
-
-    // Обработка graceful shutdown
-    process.on('SIGTERM', () => {
-      server.close(() => console.log('Сервер остановлен'));
-    });
-  } catch (error) {
-    console.error('🔥 Критическая ошибка при запуске:', error);
-    process.exit(1);
-  }
-}
-
-startServer();
-*/
