@@ -1,6 +1,7 @@
 // src/api/adminApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Person, User as AdminUser } from "../types/index";
+import { API_BASE_URL } from "../lib/apiConfig";
 
 export interface PendingPerson {
   id: string;
@@ -22,7 +23,7 @@ export interface EditPerson extends Person {
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:3000/api",
+    baseUrl: `${API_BASE_URL}/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) headers.set("Authorization", `Bearer ${token}`);
