@@ -11,10 +11,28 @@ import * as path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://family-tree-api.onrender.com",
+  "https://family-tree-frontend.onrender.com", // ← Новый домен фронтенда
+];
+
 // Разрешаем запросы с фронтенда
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`❌ CORS blocked: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
@@ -67,7 +85,7 @@ app.post("/messages", async (req, res) => {
       },
     });
     res.status(201).json(message);
-  } catch  {
+  } catch {
     //console.error("Ошибка отправки сообщения:", error);
     res.status(500).json({ error: "Не удалось отправить сообщение" });
   }

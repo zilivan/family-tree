@@ -35,9 +35,7 @@ export function FamilyView({ onChange }: FamilyViewProps) {
         {isLoading ? (
           <div>Загрузка данных...</div>
         ) : error ? (
-          <div>
-            Ошибка загрузки
-          </div>
+          <div>Ошибка загрузки</div>
         ) : data ? (
           <FamilyTreeMap
             persons={data.persons}

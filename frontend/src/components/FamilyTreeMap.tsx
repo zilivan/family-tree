@@ -1,7 +1,7 @@
 import CytoscapeComponent from "react-cytoscapejs";
 import cytoscape from "cytoscape";
 import dagre from "cytoscape-dagre";
-import type { NodeSingular,ElementDefinition } from 'cytoscape';
+import type { NodeSingular, ElementDefinition } from "cytoscape";
 
 cytoscape.use(dagre);
 type Marriage = Array<{
@@ -26,7 +26,7 @@ interface FamilyTreeMapProps {
 }
 type Stylesheet = Array<{
   selector: string;
-  style: Record<string, string | number | ((ele:NodeSingular) => string)>;
+  style: Record<string, string | number | ((ele: NodeSingular) => string)>;
 }>;
 
 export function FamilyTreeMap({
@@ -36,8 +36,11 @@ export function FamilyTreeMap({
   onPersonClick,
 }: FamilyTreeMapProps) {
   // Функция для создания полного графа
-  const createFamilyTreeElements = (persons: Person, marriages: Marriage):ElementDefinition [] => {
-    const elements: ElementDefinition [] = [];
+  const createFamilyTreeElements = (
+    persons: Person,
+    marriages: Marriage,
+  ): ElementDefinition[] => {
+    const elements: ElementDefinition[] = [];
 
     // Добавляем узлы
     persons.forEach((person) => {
@@ -98,7 +101,7 @@ export function FamilyTreeMap({
     {
       selector: "node",
       style: {
-        "background-color": (ele)  =>
+        "background-color": (ele) =>
           ele.data("gender") === "female" ? "#ff9ec8" : "#64b5f6",
         label: "data(label)",
         "text-valign": "center",

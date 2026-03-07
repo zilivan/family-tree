@@ -3,7 +3,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
-import { sendVerificationCode } from "../utils/email.js"; 
+import { sendVerificationCode } from "../utils/email.js";
 import { z } from "zod";
 import { createMarriages } from "../utils/createMarriages.js";
 import { dateSchema } from "./persons.js";

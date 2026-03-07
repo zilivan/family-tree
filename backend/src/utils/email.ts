@@ -2,13 +2,16 @@
 
 import { Resend } from "resend";
 
-export const resend = process.env.RESEND_API_KEY 
+export const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
 export const sendVerificationCode = async (email: string, code: string) => {
-if (!resend) {
-    console.warn("⚠️ RESEND_API_KEY не задан, код подтверждения не отправлен:", { email, code });
+  if (!resend) {
+    console.warn(
+      "⚠️ RESEND_API_KEY не задан, код подтверждения не отправлен:",
+      { email, code },
+    );
     return;
   }
 
@@ -19,9 +22,9 @@ if (!resend) {
       subject: "Код подтверждения для входа",
       html: `<p>Ваш код подтверждения: <strong>${code}</strong></p>`,
     });
-   // console.log(`Код ${code} отправлен на ${email} через Resend`);
-  } catch  {
-   // console.error("Ошибка при отправке email:", error);
+    // console.log(`Код ${code} отправлен на ${email} через Resend`);
+  } catch {
+    // console.error("Ошибка при отправке email:", error);
     throw new Error("Не удалось отправить email");
   }
 };
