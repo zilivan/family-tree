@@ -60,10 +60,10 @@ export const authorizeSuperAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  authenticateToken(req, res, () => {
+  
     if (!req.isSuperAdmin) {
       return res.status(403).json({ error: "Требуются права суперадмина" });
     }
     next();
-  });
+  
 };
