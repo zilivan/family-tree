@@ -162,12 +162,22 @@ router.post("/verify-code", async (req, res) => {
 router.post("/admin-pass", (req, res) => {
   const adminCode = req.body;
 
-  if (adminCode.code !== process.env.ADMIN_CODE) {
+  if (
+    adminCode.code !== process.env.ADMIN_CODE ||
+    adminCode.code !== process.env.SUPER_ADMIN_CODE
+  ) {
     return res.status(403).json({ error: "Неверный админ-код" });
+  }
+  let dataUser;
+  if (adminCode.code == process.env.ADMIN_CODE) {
+    dataUser = { id: "admin", isAdmin: true };
+  }
+  if (adminCode.code == process.env.SUPER_ADMIN_CODE) {
+    dataUser = { id: "admin", isSuperAdmin: true };
   }
 
   const token = generateToken("admin", true);
-  res.json({ token, user: { id: "admin", isAdmin: true } });
+  res.json({ token, user: dataUser });
 });
 
 // --- Вход ВРЕМЕННЫЙ ---

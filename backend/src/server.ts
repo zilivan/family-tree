@@ -5,9 +5,8 @@ import dotenv from "dotenv";
 
 import { prisma } from "./lib/prisma.js";
 // Импорты роутов
-import authRoutes from "./routes/auth.js";
-import personRoutes from "./routes/persons.js";
-import adminRoutes from "./routes/admin.js";
+import router from "./routes/index.js";
+
 // ... другие роуты
 
 // Загрузка .env
@@ -125,9 +124,8 @@ app.get("/api/health", (req: Request, res: Response) => {
 });
 
 // 🔹 6. РОУТЫ (после CORS и парсеров!)
-app.use("/auth", authRoutes);
-app.use("/api/persons", personRoutes);
-app.use("/api/admin", adminRoutes);
+app.use(router);
+
 // ... другие роуты
 
 // 🔹 7. ОБРАБОТКА 404
