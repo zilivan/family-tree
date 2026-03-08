@@ -1,10 +1,16 @@
-//re_JiN3joZW_5XoUVyK9LdxjmbtjCtKzJs9Z
+//re_JiN3joZW_5XoUVyK9LdxjmbtjCtKzJs9Z       re_JiN3joZW_5XoUVyK9LdxjmbtjCtKzJs9Z
 
 import { Resend } from "resend";
+import dotenv from "dotenv";
 
+dotenv.config();
+
+/*
 export const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
+*/
+export const resend = new Resend("re_JiN3joZW_5XoUVyK9LdxjmbtjCtKzJs9Z");
 
 export const sendVerificationCode = async (email: string, code: string) => {
   if (!resend) {
