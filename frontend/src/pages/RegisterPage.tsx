@@ -11,6 +11,9 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState<string>("");
 
   const navigate = useNavigate();
+  const handleLogout = () => {
+    navigate("/");
+  };
 
   const handleSubmit = async (payload: CreatePersonInput) => {
     const { firstName, lastName, patronymic } = payload;
@@ -26,48 +29,15 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, email }),
       });
-      const data: { message?: string; status?: string; error?: string } =
+      const data: { message?: string; status: string; error?: string } =
         await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || "Неверные данные");
       }
-      if (data.status === "PENDING") {
-        return (
-          <div
-            style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}
-          >
-            <Title order={2} mb="md">
-              Запрос принят
-            </Title>
 
-            <p>
-              Мы отправили код подтверждения на почту: <strong>{email}</strong>
-            </p>
-            <Button fullWidth mt="md" onClick={() => navigate("/login")}>
-              Перейти к входу
-            </Button>
-          </div>
-        );
-      }
-      if (data.status === "CONFIRMED") {
-        return (
-          <div
-            style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}
-          >
-            <Title order={2} mb="md">
-              Запрос отправлен
-            </Title>
-            <p>Мы отправили запрос на подтверждение администратору</p>
-            <p>
-              После подтверждения код будет отправлен на почту:{" "}
-              <strong>{email}</strong>
-            </p>
-            <Button fullWidth mt="md" onClick={() => navigate("/login")}>
-              Перейти к входу
-            </Button>
-          </div>
-        );
+      if (data.status === "PENDING" || "CONFIRMED") {
+        setSuccess(data.status);
       }
     } catch (err: unknown) {
       let message = "Неизвестная ошибка";
@@ -80,24 +50,55 @@ export default function RegisterPage() {
         if (error.data) {
           message = error.data.message || "Ошибка сервера";
         } else {
-          message = "Ошибка при отправке кода";
+          message = "Ошибка при отправке данных";
         }
       }
 
       setError(message);
-      return (
-        <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
-          <Button fullWidth mt="md" onClick={() => navigate("/register")}>
-            Повторить регистрацию
-          </Button>
-        </div>
-      );
     }
   };
+  if (error) {
+    return (
+      <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+        <Button fullWidth mt="md" onClick={() => navigate("/register")}>
+          Повторить регистрацию
+        </Button>
+      </div>
+    );
+  }
+  if (success === "PENDING") {
+    return (
+      <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+        <Title order={2} mb="md">
+          Запрос принят
+        </Title>
 
-  const handleLogout = () => {
-    navigate("/");
-  };
+        <p>
+          Мы отправили код подтверждения на почту: <strong>{email}</strong>
+        </p>
+        <Button fullWidth mt="md" onClick={() => navigate("/login")}>
+          Перейти к входу
+        </Button>
+      </div>
+    );
+  }
+  if (success === "PENDING") {
+    return (
+      <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+        <Title order={2} mb="md">
+          Запрос отправлен
+        </Title>
+        <p>Мы отправили запрос на подтверждение администратору</p>
+        <p>
+          После подтверждения код будет отправлен на почту:{" "}
+          <strong>{email}</strong>
+        </p>
+        <Button fullWidth mt="md" onClick={() => navigate("/login")}>
+          Перейти к входу
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
