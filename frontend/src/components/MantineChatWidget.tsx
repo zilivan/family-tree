@@ -193,7 +193,8 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
       style={{
         position: "fixed",
         bottom: 24,
-        right: 24,
+        right: 10,
+        left: 10,
         width: 380,
         height: 520,
         display: "flex",

@@ -218,9 +218,9 @@ export default function LoginPage() {
           >
             <Tabs.List grow mb="md">
               <Tabs.Tab value="email-code">По email и код</Tabs.Tab>
-              <Tabs.Tab value="email">По email</Tabs.Tab>
+              <Tabs.Tab value="email">Востановить код по email</Tabs.Tab>
               <Tabs.Tab value="register">Регистрация</Tabs.Tab>
-              <Tabs.Tab value="anonymous">Аноним</Tabs.Tab>
+              <Tabs.Tab value="anonymous">Без регистрации</Tabs.Tab>
               <Tabs.Tab value="admin">Администратор</Tabs.Tab>
             </Tabs.List>
             {/*  Email + Code */}
