@@ -60,6 +60,9 @@ export default function RegisterPage() {
   if (error) {
     return (
       <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+        <Title order={2} mb="md">
+          Ошибка заполнения данных
+        </Title>
         <Button fullWidth mt="md" onClick={() => navigate("/login")}>
           Повторить регистрацию
         </Button>

@@ -53,7 +53,7 @@ export const adminApi = createApi({
         method: "POST",
       }),
       // Инвалидируем семью после применения
-      invalidatesTags: ["EditPersons","PendingPersons"],
+      invalidatesTags: ["EditPersons", "PendingPersons"],
     }),
     // Новый мутация: отклонить изменения
     rejectPersonChanges: builder.mutation<void, string>({
@@ -61,7 +61,7 @@ export const adminApi = createApi({
         url: `/admin/reject-person/${personId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["EditPersons","PendingPersons"],
+      invalidatesTags: ["EditPersons", "PendingPersons"],
     }),
 
     confirmPerson: builder.mutation<void, string>({
