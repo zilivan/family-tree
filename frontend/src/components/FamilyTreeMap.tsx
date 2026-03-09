@@ -47,7 +47,7 @@ export function FamilyTreeMap({
       elements.push({
         data: {
           id: person.id,
-          label: `${person.lastName} ${person.firstName}`,
+          label: `${person.lastName} ${person.firstName} ${person.lastName}`,
           gender: person.gender,
         },
       });

@@ -3,9 +3,11 @@ import { Router } from "express";
 import authRoutes from "./auth.js";
 import personRoutes from "./persons.js";
 import adminRoutes from "./admin.js";
+import chatRoutes from "./chat.js";
 
 const router = Router();
 
+router.use("/chat", chatRoutes);
 router.use("/auth", authRoutes);
 router.use("/api/persons", personRoutes);
 router.use("/api/admin", adminRoutes);

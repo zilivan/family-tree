@@ -65,5 +65,5 @@ export const authorizeSuperAdmin = (
       return res.status(403).json({ error: "Требуются права суперадмина" });
     }
     next();
-   });
+  });
 };
