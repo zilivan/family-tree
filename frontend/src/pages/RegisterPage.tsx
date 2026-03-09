@@ -60,13 +60,13 @@ export default function RegisterPage() {
   if (error) {
     return (
       <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
-        <Button fullWidth mt="md" onClick={() => navigate("/register")}>
+        <Button fullWidth mt="md" onClick={() => navigate("/login")}>
           Повторить регистрацию
         </Button>
       </div>
     );
   }
-  if (success === "PENDING") {
+  if (success === "CONFIRMED") {
     return (
       <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
         <Title order={2} mb="md">
