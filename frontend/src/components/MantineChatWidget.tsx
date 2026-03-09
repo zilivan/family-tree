@@ -118,12 +118,12 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
 
   // Poll for new messages
   useEffect(() => {
-    if (isOpen && API_BASE_URL) {
+    if (isOpen) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, API_BASE_URL]);
+  }, [isOpen]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

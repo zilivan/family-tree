@@ -26,50 +26,75 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, email }),
       });
-      const data = await response.json();
+      const data: { message?: string; status?: string; error?: string } =
+        await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Неверный код");
+        throw new Error(data.error || "Неверные данные");
       }
+      if (data.status === "PENDING") {
+        return (
+          <div
+            style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}
+          >
+            <Title order={2} mb="md">
+              Запрос принят
+            </Title>
 
-      setSuccess("");
-      setError("");
+            <p>
+              Мы отправили код подтверждения на почту: <strong>{email}</strong>
+            </p>
+            <Button fullWidth mt="md" onClick={() => navigate("/login")}>
+              Перейти к входу
+            </Button>
+          </div>
+        );
+      }
+      if (data.status === "CONFIRMED") {
+        return (
+          <div
+            style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}
+          >
+            <Title order={2} mb="md">
+              Запрос отправлен
+            </Title>
+            <p>Мы отправили запрос на подтверждение администратору</p>
+            <p>
+              После подтверждения код будет отправлен на почту:{" "}
+              <strong>{email}</strong>
+            </p>
+            <Button fullWidth mt="md" onClick={() => navigate("/login")}>
+              Перейти к входу
+            </Button>
+          </div>
+        );
+      }
     } catch (err: unknown) {
       let message = "Неизвестная ошибка";
 
-      if (err && typeof err === "object" && "status" in err) {
+      if (err && typeof err === "object") {
         const error = err as {
           status: number;
           data: { error?: string; message?: string };
         };
         if (error.data) {
-          message = error.data.error || error.data.message || "Ошибка сервера";
+          message = error.data.message || "Ошибка сервера";
         } else {
           message = "Ошибка при отправке кода";
         }
       }
 
       setError(message);
+      return (
+        <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
+          <Button fullWidth mt="md" onClick={() => navigate("/register")}>
+            Повторить регистрацию
+          </Button>
+        </div>
+      );
     }
   };
 
-  if (success) {
-    return (
-      <div style={{ maxWidth: 400, margin: "2rem auto", padding: "0 1rem" }}>
-        <Title order={2} mb="md">
-          Запрос отправлен
-        </Title>
-        <p>Мы отправили запрос на подтверждение администратору</p>
-        <p>
-          После подтверждения код будет отправлен на почту:{" "}
-          <strong>{email}</strong>
-        </p>
-        <Button fullWidth mt="md" onClick={() => navigate("/login")}>
-          Перейти к входу
-        </Button>
-      </div>
-    );
-  }
   const handleLogout = () => {
     navigate("/");
   };
