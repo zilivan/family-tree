@@ -1,6 +1,16 @@
 import { MantineProvider } from "../provider/MantineProvider";
 import { MantineChatWidget } from "../components/MantineChatWidget";
-import { Button, Box, Text, Stack, Paper, Group, Title } from "@mantine/core";
+import {
+  Button,
+  Box,
+  Text,
+  Stack,
+  Paper,
+  Group,
+  Title,
+  ThemeIcon,
+} from "@mantine/core";
+import { TreePine } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useNavigate } from "react-router-dom";
 import FamilyViewPage from "./FamilyViewPage";
@@ -32,9 +42,19 @@ const Index = () => {
           <Stack gap="lg">
             <Group justify="space-between" align="center">
               <Box>
-                <Title order={3} style={{ color: "hsl(var(--foreground))" }}>
-                  Семейное дерево
-                </Title>
+                <Group gap="xs">
+                  <ThemeIcon
+                    size={40}
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: "green.6", to: "green.4", deg: 135 }}
+                  >
+                    <TreePine size={22} />
+                  </ThemeIcon>
+                  <Title order={3} style={{ color: "hsl(var(--foreground))" }}>
+                    Семейное дерево
+                  </Title>
+                </Group>
                 <Text size="sm" c="dimmed">
                   Привет, {fullName}!
                 </Text>
