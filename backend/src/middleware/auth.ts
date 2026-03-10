@@ -48,26 +48,15 @@ export const authenticateAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  return async () => {
-    const userFromDb = await prisma.user.findUnique({
-      where: { id: req.userId },
-    });
-    if (!userFromDb) {
-      return res.status(404).json({ error: "Пользователь не найден" });
+  authenticateToken(req, res, () => {
+    if (!req.isAdmin && !req.isSuperAdmin) {
+      return res.status(403).json({ error: "Требуется админ" });
     }
 
-    authenticateToken(req, res, () => {
-      if (!req.isAdmin && !req.isSuperAdmin) {
-        return res.status(403).json({ error: "Требуется админ" });
-      }
-      if (userFromDb.isAdmin !== req.isAdmin) {
-        return res.status(403).json({ error: "Требуется админ" });
-      }
-
-      next();
-    });
-  };
+    next();
+  });
 };
+
 export const authorizeSuperAdmin = (
   req: Request,
   res: Response,
