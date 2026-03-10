@@ -23,13 +23,14 @@ interface Message {
   isGuest: boolean;
   createdAt: string;
 }
+interface currentUser {
+  id: string;
+  name: string;
+  isGuest: boolean;
+}
 
 interface MantineChatWidgetProps {
-  currentUser?: {
-    id: string;
-    name: string;
-    isGuest: boolean;
-  };
+  currentUser?: currentUser;
 }
 
 const generateGuestName = (): string => {
@@ -41,12 +42,23 @@ const generateGuestName = (): string => {
   return `${randomAdj}${randomNoun}${randomNum}`;
 };
 
-const getOrCreateGuestName = (): string => {
+const getOrCreateGuestName = (): currentUser => {
   const stored = localStorage.getItem("chat_guest_name");
-  if (stored) return stored;
+  if (stored) {
+    return {
+      id: "guest-" + stored,
+      name: stored,
+      isGuest: false,
+    };
+  }
   const newName = generateGuestName();
   localStorage.setItem("chat_guest_name", newName);
-  return newName;
+
+  return {
+    id: "guest-" + newName,
+    name: newName,
+    isGuest: true,
+  };
 };
 
 export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
@@ -60,11 +72,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const user = currentUser || {
-    id: "guest-" + getOrCreateGuestName(),
-    name: getOrCreateGuestName(),
-    isGuest: true,
-  };
+  const user = currentUser || getOrCreateGuestName();
 
   const fetchMessages = async () => {
     if (!API_BASE_URL) return;

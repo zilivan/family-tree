@@ -1,6 +1,6 @@
 import { MantineProvider } from "../provider/MantineProvider";
 import { MantineChatWidget } from "../components/MantineChatWidget";
-import { Button, Box, Text, Stack, Paper, Group } from "@mantine/core";
+import { Button, Box, Text, Stack, Paper, Group, Title } from "@mantine/core";
 import { useAuth } from "../contexts/useAuth";
 import { useNavigate } from "react-router-dom";
 import FamilyViewPage from "./FamilyViewPage";
@@ -32,9 +32,9 @@ const Index = () => {
           <Stack gap="lg">
             <Group justify="space-between" align="center">
               <Box>
-                <Text size="xl" fw={700}>
-                  Мини-чат
-                </Text>
+                <Title order={3} style={{ color: "hsl(var(--foreground))" }}>
+                  Семейное дерево
+                </Title>
                 <Text size="sm" c="dimmed">
                   Привет, {fullName}!
                 </Text>

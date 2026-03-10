@@ -217,7 +217,9 @@ export default function MainPage() {
                     size="lg"
                     radius="xl"
                     color="green"
-                    rightSection={<ArrowRight size={18} />}
+                    rightSection={
+                      <ArrowRight size={18} onClick={handleLogin} />
+                    }
                   >
                     Создать семейное дерево
                   </Button>

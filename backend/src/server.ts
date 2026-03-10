@@ -1,10 +1,7 @@
-// backend/src/server.ts
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import { prisma } from "./lib/prisma.js";
-// Импорты роутов
 import router from "./routes/index.js";
 
 // ... другие роуты
@@ -168,7 +165,7 @@ const server = app.listen(PORT, HOST, () => {
 });
 
 // Обработка ошибок привязки порта
-server.on("error", (err: any) => {
+server.on("error", (err: { code: string; message: string }) => {
   if (err.code === "EADDRINUSE") {
     console.error(`❌ Port ${PORT} is already in use`);
   } else {

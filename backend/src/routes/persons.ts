@@ -594,22 +594,17 @@ router.get("/:id/family", async (req, res) => {
   }
 });
 
-router.patch(
-  "/:personId/lock",
-  authenticateToken,
-  authorizeSuperAdmin,
-  async (req, res) => {
-    const { personId } = req.params;
-    const { isLocked } = req.body;
+router.patch("/:personId/lock", authorizeSuperAdmin, async (req, res) => {
+  const { personId } = req.params;
+  const { isLocked } = req.body;
 
-    await prisma.person.update({
-      where: { id: personId },
-      data: { isLocked },
-    });
+  await prisma.person.update({
+    where: { id: personId },
+    data: { isLocked },
+  });
 
-    res.json({ success: true });
-  },
-);
+  res.json({ success: true });
+});
 
 // --- Загрузить фото для персоны (только авторизованный пользователь) ---
 router.post(

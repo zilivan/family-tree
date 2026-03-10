@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { prisma } from "../lib/prisma.js";
 
 interface JwtPayload {
   id: string;
@@ -47,23 +48,48 @@ export const authenticateAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  authenticateToken(req, res, () => {
-    if (!req.isAdmin && !req.isSuperAdmin) {
-      return res.status(403).json({ error: "Требуется админ" });
+  return async () => {
+    const userFromDb = await prisma.user.findUnique({
+      where: { id: req.userId },
+    });
+    if (!userFromDb) {
+      return res.status(404).json({ error: "Пользователь не найден" });
     }
-    next();
-  });
-};
 
+    authenticateToken(req, res, () => {
+      if (!req.isAdmin && !req.isSuperAdmin) {
+        return res.status(403).json({ error: "Требуется админ" });
+      }
+      if (userFromDb.isAdmin !== req.isAdmin) {
+        return res.status(403).json({ error: "Требуется админ" });
+      }
+
+      next();
+    });
+  };
+};
 export const authorizeSuperAdmin = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  authenticateToken(req, res, () => {
-    if (!req.isSuperAdmin) {
-      return res.status(403).json({ error: "Требуются права суперадмина" });
+  return async () => {
+    const userFromDb = await prisma.user.findUnique({
+      where: { id: req.userId },
+    });
+    if (!userFromDb) {
+      return res.status(404).json({ error: "Пользователь не найден" });
     }
-    next();
-  });
+
+    authenticateToken(req, res, () => {
+      if (!req.isSuperAdmin) {
+        return res.status(403).json({ error: "Требуются права суперадмина" });
+      }
+      if (userFromDb.isSuperAdmin !== req.isSuperAdmin) {
+        return res.status(403).json({ error: "Требуются права суперадмина" });
+      }
+
+      next();
+    });
+  };
 };

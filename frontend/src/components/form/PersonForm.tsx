@@ -319,7 +319,7 @@ export function PersonForm({
             />
           )}
 
-          <Group justify="flex-end" mt="md">
+          <Group justify="flex-start" mt="md">
             <Button variant="default" onClick={onCancel}>
               Отмена
             </Button>
