@@ -201,11 +201,10 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
       radius="lg"
       style={{
         position: "fixed",
-        marginTop: isMobile ? 0 : 5,
         bottom: isMobile ? 20 : 5,
         right: 10,
         width: 380,
-        height: isMobile ? 520 : "100%",
+        height: isMobile ? 520 : "99%",
         display: "flex",
         flexDirection: "column",
         zIndex: 1000,
