@@ -204,7 +204,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
         bottom: isMobile ? 20 : 5,
         right: 10,
         width: 380,
-        height: isMobile ? 520 : "auto",
+        height: isMobile ? 520 : "100%",
         display: "flex",
         flexDirection: "column",
         zIndex: 1000,
