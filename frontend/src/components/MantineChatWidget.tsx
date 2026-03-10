@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   Paper,
   TextInput,
@@ -71,7 +72,7 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
+  const isMobile = useMediaQuery("(max-width: 599px)");
   const user = currentUser || getOrCreateGuestName();
 
   const fetchMessages = async () => {
@@ -200,10 +201,10 @@ export const MantineChatWidget: React.FC<MantineChatWidgetProps> = ({
       radius="lg"
       style={{
         position: "fixed",
-        bottom: 24,
+        bottom: isMobile ? 20 : 5,
         right: 10,
         width: 380,
-        height: 520,
+        height: isMobile ? 520 : 250,
         display: "flex",
         flexDirection: "column",
         zIndex: 1000,
