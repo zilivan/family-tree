@@ -48,12 +48,22 @@ export const authenticateAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  authenticateToken(req, res, () => {
-    if (!req.isAdmin && !req.isSuperAdmin) {
-      return res.status(403).json({ error: "Требуется админ" });
-    }
+  authenticateToken(req, res, async () => {
+    try {
+      const userFromDb = await prisma.user.findUnique({
+        where: { id: req.userId },
+      });
+      if (!userFromDb) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+      }
+      if (!userFromDb.isAdmin) {
+        return res.status(403).json({ error: "Требуется админ" });
+      }
 
-    next();
+      next();
+    } catch {
+      return res.status(500).json({ error: "Ошибка проверки прав" });
+    }
   });
 };
 
@@ -62,23 +72,23 @@ export const authorizeSuperAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  return async () => {
-    const userFromDb = await prisma.user.findUnique({
-      where: { id: req.userId },
-    });
-    if (!userFromDb) {
-      return res.status(404).json({ error: "Пользователь не найден" });
-    }
+  authenticateToken(req, res, async () => {
+    try {
+      const userFromDb = await prisma.user.findUnique({
+        where: { id: req.userId },
+      });
 
-    authenticateToken(req, res, () => {
-      if (!req.isSuperAdmin) {
-        return res.status(403).json({ error: "Требуются права суперадмина" });
+      if (!userFromDb) {
+        return res.status(404).json({ error: "Пользователь не найден" });
       }
-      if (userFromDb.isSuperAdmin !== req.isSuperAdmin) {
+
+      if (!userFromDb.isSuperAdmin) {
         return res.status(403).json({ error: "Требуются права суперадмина" });
       }
 
       next();
-    });
-  };
+    } catch {
+      return res.status(500).json({ error: "Ошибка проверки прав" });
+    }
+  });
 };
