@@ -42,7 +42,27 @@ export const authenticateToken = (
     next();
   });
 };
+export const assignSuperAdminRole = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
 
+  const adminEmailsRaw = process.env.SUPER_ADMIN_EMAILS || "";
+  const adminEmails = adminEmailsRaw
+    .split(",")
+    .map((e) => e.toLowerCase().trim());
+
+  if (adminEmails.includes(email)) {
+    req.body.isSuperAdmin = true;
+    // console.log(`🔥 Регистрация супер-админа: ${email}`);
+  } else {
+    req.body.isSuperAdmin = false;
+  }
+
+  next();
+};
 export const authenticateAdmin = (
   req: Request,
   res: Response,
@@ -53,10 +73,10 @@ export const authenticateAdmin = (
       const userFromDb = await prisma.user.findUnique({
         where: { id: req.userId },
       });
-     /* if (!userFromDb) {
+      if (!userFromDb) {
         return res.status(404).json({ error: "Пользователь не найден" });
-      }*/
-      if (!req.isAdmin) {
+      }
+      if (!userFromDb.isAdmin) {
         return res.status(403).json({ error: "Требуется админ" });
       }
 

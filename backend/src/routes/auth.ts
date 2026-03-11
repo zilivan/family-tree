@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { sendVerificationCode } from "../utils/email.js";
+import { assignSuperAdminRole } from "../middleware/auth.js";
 import { z } from "zod";
 import { createMarriages } from "../utils/createMarriages.js";
 import { dateSchema } from "./persons.js";
@@ -53,14 +54,14 @@ const generateToken = (
 // --- Запрос кода (email) ---
 router.post("/request-code", async (req, res) => {
   const { email } = req.body;
-
+  const lowCaseEmail = email ? email.toLowerCase().trim() : "";
   if (!email) {
     return res.status(400).json({ error: "Email обязателен" });
   }
 
   // Проверим, существует ли пользователь с таким email
   let user = await prisma.user.findUnique({
-    where: { email },
+    where: { email: lowCaseEmail },
     include: { person: true },
   });
 
@@ -94,8 +95,8 @@ router.post("/request-code", async (req, res) => {
 
 // --- Проверка кода ---
 router.post("/verify-code", async (req, res) => {
-  const { email, code } = req.body;
-
+  const { code } = req.body;
+  const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
   if (!email || !code) {
     return res.status(400).json({ error: "Email и код обязательны" });
   }
@@ -188,10 +189,11 @@ router.post("/anonymous", (req, res) => {
 });
 
 // --- НОВАЯ РЕГИСТРАЦИЯ (ФИО + дата + email) ---
-router.post("/register", async (req, res) => {
+router.post("/register", assignSuperAdminRole, async (req, res) => {
   const data = createPersonSchema.parse(req.body);
   const { email, spouseIds, ...newPerson } = data;
-
+  const lowCaseEmail = email ? email.toLowerCase().trim() : "";
+  const { isSuperAdmin } = req.body;
   const { firstName, lastName, patronymic } = newPerson;
 
   if (!email || !firstName || !lastName || !patronymic) {
@@ -211,8 +213,13 @@ router.post("/register", async (req, res) => {
 
     if (confirmedPerson) {
       // ✅ Персона найдена — создаём пользователя
+
       const user = await prisma.user.create({
-        data: { email, personId: confirmedPerson.id },
+        data: {
+          email: lowCaseEmail,
+          personId: confirmedPerson.id,
+          isSuperAdmin,
+        },
       });
 
       const code = crypto.randomInt(100000, 999999).toString();
@@ -243,7 +250,7 @@ router.post("/register", async (req, res) => {
     }
 
     await prisma.pendingRegistration.create({
-      data: { email, personId: pendingPerson.id },
+      data: { email: lowCaseEmail, personId: pendingPerson.id },
     });
 
     return res.json({
@@ -260,8 +267,8 @@ router.post("/register", async (req, res) => {
 
 // --- Вход по коду ---
 router.post("/verify-code", async (req, res) => {
-  const { email, code } = req.body;
-
+  const { code } = req.body;
+  const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
   if (!email || !code) {
     return res.status(400).json({ error: "Email и код обязательны" });
   }

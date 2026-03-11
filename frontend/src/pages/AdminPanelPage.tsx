@@ -52,14 +52,28 @@ export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
     userId: null,
     loading: false,
   });
-  const { data: pendingPersons = [], isLoading: isLoadingPending } =
-    useGetPendingPersonsQuery();
+  const {
+    data: pendingPersons = [],
+    isLoading: isLoadingPending,
+    refetch: refetchPending,
+  } = useGetPendingPersonsQuery();
 
-  const { data: users = [], isLoading: isLoadingUsers } = useGetUsersQuery();
+  const {
+    data: users = [],
+    isLoading: isLoadingUsers,
+    refetch: refetchUsers,
+  } = useGetUsersQuery();
 
-  const { data: editPersons = [], isLoading: isLoadingEdit } =
-    useGetEditPersonsQuery();
-
+  const {
+    data: editPersons = [],
+    isLoading: isLoadingEdit,
+    refetch: refetchEdit,
+  } = useGetEditPersonsQuery();
+  const handleRefetchAll = () => {
+    refetchPending();
+    refetchUsers();
+    refetchEdit();
+  };
   const [confirmPerson, { isLoading: isConfirming }] =
     useConfirmPersonMutation();
   const [activeTab, setActiveTab] = useState<string | null>("pending");
@@ -138,9 +152,14 @@ export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
   return (
     <>
       <Container size="lg" py="xl">
-        <Title order={2} mb="lg">
-          Админ-панель
-        </Title>
+        <Group>
+          <Title order={2} mb="lg">
+            Админ-панель  
+          </Title>
+          <Button size="ms" color="blue" onClick={() => handleRefetchAll()}>
+           Одновить данные
+          </Button>
+        </Group>
 
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>

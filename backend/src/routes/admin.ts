@@ -263,7 +263,7 @@ router.get("/users", authenticateAdmin, async (req, res) => {
   }
 });
 
-router.patch("/users/:userId/block", async (req, res) => {
+router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
   const { isBlocked } = req.body;
 
@@ -279,7 +279,7 @@ router.patch("/users/:userId/block", async (req, res) => {
   }
 });
 
-router.patch("/users/:userId/admin", async (req, res) => {
+router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
   const { isAdmin } = req.body;
 
@@ -295,7 +295,7 @@ router.patch("/users/:userId/admin", async (req, res) => {
   }
 });
 
-router.delete("/users/:userId", async (req, res) => {
+router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
 
   try {
