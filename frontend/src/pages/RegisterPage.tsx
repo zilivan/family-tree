@@ -36,7 +36,7 @@ export default function RegisterPage() {
         throw new Error(data.error || "Неверные данные");
       }
 
-      if (data.status === "PENDING" || "CONFIRMED") {
+      if (["PENDING", "CONFIRMED"].includes(data.status)) {
         setSuccess(data.status);
       }
     } catch (err: unknown) {

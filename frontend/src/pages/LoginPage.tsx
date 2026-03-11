@@ -19,7 +19,6 @@ import {
   useVerifyCodeMutation,
   useRequestCodeMutation,
   useAnonymCodeMutation,
-  useSendAdminCodeMutation,
 } from "../api/authApi";
 
 type AuthStep = "email-code" | "email" | "register" | "anonymous" | "admin";
@@ -28,7 +27,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [anonymousCode, setAnonymousCode] = useState("");
-  const [adminCode, setAdminCode] = useState("");
+  // const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<AuthStep>("email-code");
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +38,7 @@ export default function LoginPage() {
   const [verifyCode] = useVerifyCodeMutation();
   const [requestCode] = useRequestCodeMutation();
   const [anonymCode] = useAnonymCodeMutation();
-  const [sendAdminCode] = useSendAdminCodeMutation();
+  // const [sendAdminCode] = useSendAdminCodeMutation();
 
   function getMassegError(err: unknown): string {
     let message = "Неизвестная ошибка";
@@ -147,7 +146,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
+  /*
   const handleAdminLogin = async () => {
     if (!adminCode) {
       setError("Пожалуйста, введите код");
@@ -170,7 +169,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
+*/
   const handleLogout = () => {
     navigate("/main");
   };
