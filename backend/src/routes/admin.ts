@@ -264,13 +264,23 @@ router.get("/users", authenticateAdmin, async (req, res) => {
 });
 
 router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
-  const userIdSuperAdmin = req.body.userId ? req.body.userId : "";
   const { userId } = req.params;
   const { isBlocked } = req.body;
-  if (userIdSuperAdmin === userId) {
-    return res.status(403).json({ error: "Нельзя блокировать Суперадмина " });
-  }
   try {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isSuperAdmin: true, email: true },
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    if (targetUser.isSuperAdmin) {
+      return res.status(403).json({
+        error: "Нельзя изменять права суперадмина",
+      });
+    }
     await prisma.user.update({
       where: { id: userId },
       data: { isBlocked },
@@ -283,13 +293,24 @@ router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
 });
 
 router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
-  const userIdSuperAdmin = req.body.userId ? req.body.userId : "";
   const { userId } = req.params;
   const { isAdmin } = req.body;
-  if (userIdSuperAdmin === userId) {
-    return res.status(403).json({ error: "Нельзя блокировать Суперадмина " });
-  }
   try {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isSuperAdmin: true, email: true },
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    if (targetUser.isSuperAdmin) {
+      return res.status(403).json({
+        error: "Нельзя изменять права суперадмина",
+      });
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { isAdmin },
