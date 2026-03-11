@@ -19,7 +19,6 @@ import {
   useVerifyCodeMutation,
   useRequestCodeMutation,
   useAnonymCodeMutation,
-  useSendAdminCodeMutation,
 } from "../api/authApi";
 
 type AuthStep = "email-code" | "email" | "register" | "anonymous" | "admin";
@@ -28,7 +27,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [anonymousCode, setAnonymousCode] = useState("");
-  const [adminCode, setAdminCode] = useState("");
+  // const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<AuthStep>("email-code");
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +38,7 @@ export default function LoginPage() {
   const [verifyCode] = useVerifyCodeMutation();
   const [requestCode] = useRequestCodeMutation();
   const [anonymCode] = useAnonymCodeMutation();
-  const [sendAdminCode] = useSendAdminCodeMutation();
+  //const [sendAdminCode] = useSendAdminCodeMutation();
 
   function getMassegError(err: unknown): string {
     let message = "Неизвестная ошибка";
@@ -147,7 +146,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
+  /*
   const handleAdminLogin = async () => {
     if (!adminCode) {
       setError("Пожалуйста, введите код");
@@ -170,7 +169,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
+*/
   const handleLogout = () => {
     navigate("/main");
   };
@@ -221,7 +220,7 @@ export default function LoginPage() {
               <Tabs.Tab value="email">Востановить код по email</Tabs.Tab>
               <Tabs.Tab value="register">Регистрация</Tabs.Tab>
               <Tabs.Tab value="anonymous">Без регистрации</Tabs.Tab>
-                <Tabs.Tab value="admin">Администратор</Tabs.Tab>
+              {/*}   <Tabs.Tab value="admin">Администратор</Tabs.Tab>*/}
             </Tabs.List>
             {/*  Email + Code */}
             <Tabs.Panel value="email-code">
@@ -339,7 +338,7 @@ export default function LoginPage() {
               </Stack>
             </Tabs.Panel>
             {/* Admin Login with Code */}
-            <Tabs.Panel value="admin">
+            {/*}  <Tabs.Panel value="admin">
               <Stack>
                 <Text size="sm" c="dimmed" mb="xs">
                   Введите код для входа администратора
@@ -359,7 +358,7 @@ export default function LoginPage() {
                   Войти как администратор
                 </Button>
               </Stack>
-            </Tabs.Panel>
+            </Tabs.Panel>*/}
           </Tabs>
         </Paper>
       </Container>

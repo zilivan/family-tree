@@ -58,7 +58,7 @@ export const assignSuperAdminRole = (
     .map((e) => e.toLowerCase().trim());
 
   if (adminEmails.includes(email)) {
-   req.canBeSuperAdmin = true;
+    req.canBeSuperAdmin = true;
     req.canBeAdmin = true;
     // console.log(`🔥 Регистрация супер-админа: ${email}`);
   } else {
@@ -78,10 +78,10 @@ export const authenticateAdmin = (
       const userFromDb = await prisma.user.findUnique({
         where: { id: req.userId },
       });
-     /* if (!userFromDb) {
+      if (!userFromDb) {
         return res.status(404).json({ error: "Пользователь не найден" });
-      }*/
-      if (!req.isAdmin) {
+      }
+      if (!userFromDb.isAdmin) {
         return res.status(403).json({ error: "Требуется админ" });
       }
 

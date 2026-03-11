@@ -322,7 +322,7 @@ router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
   }
 });
 
-router.delete("/users/:userId", async (req, res) => {
+router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
 
   try {
