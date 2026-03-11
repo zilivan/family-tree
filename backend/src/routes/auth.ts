@@ -193,7 +193,8 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
   const data = createPersonSchema.parse(req.body);
   const { email, spouseIds, ...newPerson } = data;
   const lowCaseEmail = email ? email.toLowerCase().trim() : "";
-  const { isSuperAdmin, isAdmin } = req.body;
+  const isSuperAdmin = req.canBeSuperAdmin === true;
+  const isAdmin = req.canBeAdmin === true;
   const { firstName, lastName, patronymic } = newPerson;
 
   if (!email || !firstName || !lastName || !patronymic) {

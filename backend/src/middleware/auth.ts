@@ -15,6 +15,8 @@ declare global {
       isAdmin?: boolean;
       isSuperAdmin?: boolean;
       isBlocked?: boolean;
+      canBeSuperAdmin?: boolean;
+      canBeAdmin?: boolean;
     }
   }
 }
@@ -56,12 +58,12 @@ export const assignSuperAdminRole = (
     .map((e) => e.toLowerCase().trim());
 
   if (adminEmails.includes(email)) {
-    req.body.isAdmin = true;
-    req.body.isSuperAdmin = true;
+   req.canBeSuperAdmin = true;
+    req.canBeAdmin = true;
     // console.log(`🔥 Регистрация супер-админа: ${email}`);
   } else {
-    req.body.isSuperAdmin = false;
-    req.body.isAdmin = false;
+    req.canBeSuperAdmin = false;
+    req.canBeAdmin = false;
   }
 
   next();
