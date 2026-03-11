@@ -157,7 +157,7 @@ export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
             Админ-панель  
           </Title>
           <Button size="ms" color="blue" onClick={() => handleRefetchAll()}>
-           Одновить данные
+           Обновить данные
           </Button>
         </Group>
 

@@ -56,9 +56,11 @@ export const assignSuperAdminRole = (
 
   if (adminEmails.includes(email)) {
     req.body.isSuperAdmin = true;
+    req.body.isAdmin = true;
     // console.log(`🔥 Регистрация супер-админа: ${email}`);
   } else {
     req.body.isSuperAdmin = false;
+    req.body.isAdmin = false;
   }
 
   next();

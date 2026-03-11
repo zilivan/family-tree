@@ -193,7 +193,7 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
   const data = createPersonSchema.parse(req.body);
   const { email, spouseIds, ...newPerson } = data;
   const lowCaseEmail = email ? email.toLowerCase().trim() : "";
-  const { isSuperAdmin } = req.body;
+  const { isSuperAdmin, isAdmin } = req.body;
   const { firstName, lastName, patronymic } = newPerson;
 
   if (!email || !firstName || !lastName || !patronymic) {
@@ -219,6 +219,7 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
           email: lowCaseEmail,
           personId: confirmedPerson.id,
           isSuperAdmin,
+           isAdmin
         },
       });
 
