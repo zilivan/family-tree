@@ -39,6 +39,7 @@ export const authenticateToken = (
     req.userId = user.id;
     req.isAdmin = user.isAdmin;
     req.isSuperAdmin = user.isSuperAdmin;
+    req.isBlocked = user.isBlocked;
     next();
   });
 };
@@ -75,10 +76,10 @@ export const authenticateAdmin = (
       const userFromDb = await prisma.user.findUnique({
         where: { id: req.userId },
       });
-     /* if (!userFromDb) {
+      if (!userFromDb) {
         return res.status(404).json({ error: "Пользователь не найден" });
-      }*/
-      if (!req.isAdmin) {
+      }
+      if (!userFromDb.isAdmin) {
         return res.status(403).json({ error: "Требуется админ" });
       }
 

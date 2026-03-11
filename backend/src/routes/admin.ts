@@ -264,9 +264,12 @@ router.get("/users", authenticateAdmin, async (req, res) => {
 });
 
 router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
+  const userIdSuperAdmin = req.body.userId ? req.body.userId : "";
   const { userId } = req.params;
   const { isBlocked } = req.body;
-
+  if (userIdSuperAdmin === userId) {
+    return res.status(403).json({ error: "Нельзя блокировать Суперадмина " });
+  }
   try {
     await prisma.user.update({
       where: { id: userId },
@@ -280,9 +283,12 @@ router.patch("/users/:userId/block", authorizeSuperAdmin, async (req, res) => {
 });
 
 router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
+  const userIdSuperAdmin = req.body.userId ? req.body.userId : "";
   const { userId } = req.params;
   const { isAdmin } = req.body;
-
+  if (userIdSuperAdmin === userId) {
+    return res.status(403).json({ error: "Нельзя блокировать Суперадмина " });
+  }
   try {
     await prisma.user.update({
       where: { id: userId },
@@ -294,7 +300,7 @@ router.patch("/users/:userId/admin", authorizeSuperAdmin, async (req, res) => {
     res.status(500).json({ error: "Не удалось обновить пользователя" });
   }
 });
- 
+
 router.delete("/users/:userId", async (req, res) => {
   const { userId } = req.params;
 

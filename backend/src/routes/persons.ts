@@ -296,6 +296,10 @@ router.get("/:id", async (req, res) => {
 // --- Создать новую персону (только авторизованный пользователь) ---
 // POST /api/persons
 router.post("/", authenticateToken, async (req, res) => {
+  if (req.body.isBlocked) {
+    return res.status(403).json({ error: "Пользователь заблокирован" });
+  }
+
   const data = createPersonSchema.parse(req.body);
   const { spouseIds, ...validatedData } = data;
 
@@ -357,6 +361,10 @@ router.post("/", authenticateToken, async (req, res) => {
 // --- Обновить персону (только авторизованный пользователь) ---
 // PUT /api/persons/:id
 router.put("/:id", authenticateToken, async (req, res) => {
+  if (req.body.isBlocked) {
+    return res.status(403).json({ error: "Пользователь заблокирован" });
+  }
+
   const { id } = req.params;
   const branch = "base";
   const data = updatePersonSchema.parse(req.body);

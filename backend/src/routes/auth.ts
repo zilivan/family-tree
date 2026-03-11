@@ -219,7 +219,7 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
           email: lowCaseEmail,
           personId: confirmedPerson.id,
           isSuperAdmin,
-          isAdmin
+          isAdmin,
         },
       });
 

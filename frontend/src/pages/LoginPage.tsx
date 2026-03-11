@@ -221,7 +221,7 @@ export default function LoginPage() {
               <Tabs.Tab value="email">Востановить код по email</Tabs.Tab>
               <Tabs.Tab value="register">Регистрация</Tabs.Tab>
               <Tabs.Tab value="anonymous">Без регистрации</Tabs.Tab>
-              <Tabs.Tab value="admin">Администратор</Tabs.Tab>
+              {/*}  <Tabs.Tab value="admin">Администратор</Tabs.Tab>*/}
             </Tabs.List>
             {/*  Email + Code */}
             <Tabs.Panel value="email-code">
@@ -339,7 +339,7 @@ export default function LoginPage() {
               </Stack>
             </Tabs.Panel>
             {/* Admin Login with Code */}
-            <Tabs.Panel value="admin">
+            {/*   <Tabs.Panel value="admin">
               <Stack>
                 <Text size="sm" c="dimmed" mb="xs">
                   Введите код для входа администратора
@@ -359,7 +359,7 @@ export default function LoginPage() {
                   Войти как администратор
                 </Button>
               </Stack>
-            </Tabs.Panel>
+            </Tabs.Panel> */}
           </Tabs>
         </Paper>
       </Container>
