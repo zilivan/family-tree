@@ -73,10 +73,10 @@ export const authenticateAdmin = (
       const userFromDb = await prisma.user.findUnique({
         where: { id: req.userId },
       });
-      if (!userFromDb) {
+     /* if (!userFromDb) {
         return res.status(404).json({ error: "Пользователь не найден" });
-      }
-      if (!userFromDb.isAdmin) {
+      }*/
+      if (!req.isAdmin) {
         return res.status(403).json({ error: "Требуется админ" });
       }
 
