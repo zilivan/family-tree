@@ -152,11 +152,11 @@ export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
   return (
     <>
       <Container size="lg" py="xl">
-        <Group>
+        <Group justify="space-between">
           <Title order={2} mb="lg">
             Админ-панель  
           </Title>
-          <Button size="ms" color="blue" onClick={() => handleRefetchAll()}>
+          <Button size="ms" color="green" onClick={() => handleRefetchAll()}>
            Обновить данные
           </Button>
         </Group>
