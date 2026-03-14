@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "deploy": "gh-pages -d dist",
     "dep": "npm run build && gh-pages -d dist",
-    "lint": "eslint .",
+    "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write .",
     "preview": "vite preview"

@@ -3,7 +3,7 @@ import {
   useApplyPersonChangesMutation,
   useRejectPersonChangesMutation,
 } from "../../api/adminApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useUpdatePersonLockMutation,
   useDeletePersonMutation,
@@ -83,7 +83,7 @@ export default function PersonCard({
     personId: null,
     loading: false,
   });
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const [applyChanges, { isLoading }] = useApplyPersonChangesMutation();
   const [rejectChanges] = useRejectPersonChangesMutation();
   const [updatePersonLock] = useUpdatePersonLockMutation();
@@ -212,6 +212,7 @@ export default function PersonCard({
       personId,
       loading: false,
     });
+    setSearchParams(userId);
     if (personUserId === userId) {
       navigate("/");
     }

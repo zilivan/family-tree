@@ -203,14 +203,8 @@ export default function FamilyViewPage({
     return <div>Загрузка...</div>;
   }
 
-  if (errorBase) {
-    const personUserId = user?.personId ?? null;
-    if (personUserId) {
-      setSearchParams({ personId: personUserId, branch });
-    } else {
-      return <div>Ошибка загрузки основной базы</div>;
-    }
-  }
+  if (errorBase) return <div>Ошибка загрузки основной базы</div>;
+
   if (branch === "edit" && errorEdit) {
     const value = "base";
     return (
