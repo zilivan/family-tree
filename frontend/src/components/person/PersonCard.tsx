@@ -433,7 +433,9 @@ export default function PersonCard({
                 size="xs"
                 variant="light"
                 color="red"
-                onClick={() => handleDeletePerson(person.id, person.userId ?? '' )}
+                onClick={() =>
+                  handleDeletePerson(person.id, person.userId ?? "")
+                }
                 mt="sm"
               >
                 Удалить персону

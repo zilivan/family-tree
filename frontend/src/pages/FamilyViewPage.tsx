@@ -31,7 +31,7 @@ interface FamilyViewPageProps {
 export default function FamilyViewPage({
   isAnonymous = false,
   isBlocked = false,
-  userId = "",
+  userId,
 }: FamilyViewPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const branch = searchParams.get("branch") || "base";
@@ -61,7 +61,7 @@ export default function FamilyViewPage({
     error: errorBase,
     refetch: refetchBaseFamily,
   } = useGetFamilyQuery(
-    { personId: personId ?? user?.personId, branch: "base" },
+    { personId: personId ?? "", branch: "base" },
     { skip: !personId },
   );
 

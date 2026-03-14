@@ -42,7 +42,10 @@ interface AdminPanelPageProps {
   userId: string;
 }
 
-export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
+export default function AdminPanelPage({
+  isSuperAdmin,
+  userId,
+}: AdminPanelPageProps) {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const navigate = useNavigate();

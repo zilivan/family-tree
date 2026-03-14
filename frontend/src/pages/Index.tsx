@@ -34,7 +34,7 @@ const Index = () => {
     ? `${user.fullName.lastName} ${user.fullName.firstName} ${user.fullName.patronymic}`.trim()
     : "Пользователь";
   localStorage.setItem("chat_guest_name", fullName);
-
+  const userId = user?.id ?? "";
   return (
     <MantineProvider>
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -73,12 +73,12 @@ const Index = () => {
 
         <MantineChatWidget />
         {(user?.isAdmin || isSuperAdmin) && (
-          <AdminPanelPage isSuperAdmin={isSuperAdmin} userId={user.id} />
+          <AdminPanelPage isSuperAdmin={isSuperAdmin} userId={userId} />
         )}
         <FamilyViewPage
           isAnonymous={isAnonymous}
           isBlocked={isBlocked}
-          userId={user.id}
+          userId={userId}
         />
       </div>
     </MantineProvider>
