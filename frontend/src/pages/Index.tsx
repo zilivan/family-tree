@@ -73,9 +73,13 @@ const Index = () => {
 
         <MantineChatWidget />
         {(user?.isAdmin || isSuperAdmin) && (
-          <AdminPanelPage isSuperAdmin={isSuperAdmin} />
+          <AdminPanelPage isSuperAdmin={isSuperAdmin} userId={user.id} />
         )}
-        <FamilyViewPage isAnonymous={isAnonymous} isBlocked={isBlocked} />
+        <FamilyViewPage
+          isAnonymous={isAnonymous}
+          isBlocked={isBlocked}
+          userId={user.id}
+        />
       </div>
     </MantineProvider>
   );

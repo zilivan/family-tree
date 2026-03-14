@@ -3,6 +3,7 @@ import {
   useApplyPersonChangesMutation,
   useRejectPersonChangesMutation,
 } from "../../api/adminApi";
+import { useNavigate } from "react-router-dom";
 import {
   useUpdatePersonLockMutation,
   useDeletePersonMutation,
@@ -33,6 +34,7 @@ import {
 import type { Person, Photo } from "../../types";
 
 interface PersonCardProps {
+  userId: string;
   person: Person;
   currentPersonPhoto?: Photo[];
   isSpouses?: boolean;
@@ -52,6 +54,7 @@ interface PersonCardProps {
 }
 
 export default function PersonCard({
+  userId,
   person,
   currentPersonPhoto,
   isSpouses = false,
@@ -70,7 +73,7 @@ export default function PersonCard({
   branch,
 }: PersonCardProps) {
   const { user } = useAuth();
-
+  const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<{
     isOpen: boolean;
     personId: string | null;
@@ -203,12 +206,15 @@ export default function PersonCard({
       refetchAll();
     }
   };
-  const handleDeletePerson = async (personId: string) => {
+  const handleDeletePerson = async (personId: string, personUserId: string) => {
     setConfirmDelete({
       isOpen: true,
       personId,
       loading: false,
     });
+    if (personUserId === userId) {
+      navigate("/");
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -268,7 +274,7 @@ export default function PersonCard({
                   radius="md"
                   onClick={handleNavigateUp}
                 >
-                  {" "}
+                  к родителям
                   <IconChevronUp width={100} />
                 </Button>
               )}
@@ -343,7 +349,7 @@ export default function PersonCard({
               radius="lg"
               onClick={() => handleNavigateDown?.(childId)}
             >
-              {" "}
+              к детям
               <IconChevronDown width={100} />
             </Button>
           )}
@@ -427,7 +433,7 @@ export default function PersonCard({
                 size="xs"
                 variant="light"
                 color="red"
-                onClick={() => handleDeletePerson(person.id)}
+                onClick={() => handleDeletePerson(person.id, person.userId ?? '' )}
                 mt="sm"
               >
                 Удалить персону

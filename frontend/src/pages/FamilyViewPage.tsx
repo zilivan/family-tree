@@ -25,11 +25,13 @@ import { useAuth } from "../contexts/useAuth";
 interface FamilyViewPageProps {
   isAnonymous: boolean;
   isBlocked: boolean;
+  userId: string;
 }
 
 export default function FamilyViewPage({
   isAnonymous = false,
   isBlocked = false,
+  userId = "",
 }: FamilyViewPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const branch = searchParams.get("branch") || "base";
@@ -52,14 +54,14 @@ export default function FamilyViewPage({
     setSearchParams({ personId: id });
     setSearchQuery("");
   };
-
+  console.log("personId :", personId);
   const {
     data: baseFamily,
     isLoading: isLoadingBase,
     error: errorBase,
     refetch: refetchBaseFamily,
   } = useGetFamilyQuery(
-    { personId: personId ?? "", branch: "base" },
+    { personId: personId ?? user?.personId, branch: "base" },
     { skip: !personId },
   );
 
@@ -332,6 +334,7 @@ export default function FamilyViewPage({
             }}
           >
             <PersonCard
+              userId={userId}
               person={currentPerson}
               refetchAll={refetchAll}
               onSuccess={(success) => setSuccess(success)}
@@ -356,6 +359,7 @@ export default function FamilyViewPage({
             {/* ПЕРСОНА   В РЕДАКТОРЕ */}
             {branch === "edit" && currentEditPerson && (
               <PersonCard
+                userId={userId}
                 person={currentEditPerson}
                 currentPersonPhoto={currentPerson.photos}
                 refetchAll={refetchAll}
@@ -385,6 +389,7 @@ export default function FamilyViewPage({
             {/* СУПРУГИ */}
             {currentSpoused && (
               <PersonCard
+                userId={userId}
                 person={currentSpoused}
                 onSuccess={(success) => setSuccess(success)}
                 setError={(error) => setError(error)}
@@ -423,6 +428,7 @@ export default function FamilyViewPage({
                 }}
               >
                 <PersonCard
+                  userId={userId}
                   person={child}
                   onSuccess={(success) => setSuccess(success)}
                   setError={(error) => setError(error)}

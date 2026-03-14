@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal";
 import {
   Container,
@@ -38,11 +39,13 @@ import {
 
 interface AdminPanelPageProps {
   isSuperAdmin: boolean;
+  userId: string;
 }
 
 export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<{
     isOpen: boolean;
     userId: string | null;
@@ -146,6 +149,9 @@ export default function AdminPanelPage({ isSuperAdmin }: AdminPanelPageProps) {
       setError("Ошибка удаления");
     } finally {
       setConfirmDelete({ isOpen: false, userId: null, loading: false });
+    }
+    if (confirmDelete.userId === userId) {
+      navigate("/");
     }
   };
 
