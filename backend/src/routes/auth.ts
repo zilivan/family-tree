@@ -94,6 +94,7 @@ router.post("/request-code", async (req, res) => {
 });
 
 // --- Проверка кода ---
+
 router.post("/verify-code", async (req, res) => {
   const { code } = req.body;
   const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
@@ -200,6 +201,16 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
   if (!email || !firstName || !lastName || !patronymic) {
     return res.status(400).json({ error: "Все поля обязательны" });
   }
+  let user = await prisma.user.findUnique({
+    where: { email: lowCaseEmail },
+  });
+
+  if (user) {
+    // Если пользователь есть
+    return res
+      .status(400)
+      .json({ error: "Пользователь с таким Email существует в  базе" });
+  }
 
   try {
     // Ищем ПОДТВЕРЖДЕННУЮ персону
@@ -292,6 +303,8 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
   }
 });
 
+/*
+
 // --- Вход по коду ---
 router.post("/verify-code", async (req, res) => {
   const { code } = req.body;
@@ -319,5 +332,6 @@ router.post("/verify-code", async (req, res) => {
     user: { id: user.id, email: user.email, isAdmin: user.isAdmin },
   });
 });
+*/
 
 export default router;

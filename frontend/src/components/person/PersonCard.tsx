@@ -274,7 +274,8 @@ export default function PersonCard({
                   radius="md"
                   onClick={handleNavigateUp}
                 >
-                 переход к родителям
+                  <IconChevronUp width={100} />
+                родители
                   <IconChevronUp width={100} />
                 </Button>
               )}
@@ -349,8 +350,9 @@ export default function PersonCard({
               radius="lg"
               onClick={() => handleNavigateDown?.(childId)}
             >
-              переход к детям
-              <IconChevronDown width={100} />
+              <IconChevronDown width={50}/>
+             дети
+              <IconChevronDown width={50} />
             </Button>
           )}
 
