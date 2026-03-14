@@ -34,7 +34,7 @@ const Index = () => {
     ? `${user.fullName.lastName} ${user.fullName.firstName} ${user.fullName.patronymic}`.trim()
     : "Пользователь";
   localStorage.setItem("chat_guest_name", fullName);
-  const userId = user?.id ?? "";
+  const userId = user?.personId ?? "";
   return (
     <MantineProvider>
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
