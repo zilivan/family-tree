@@ -83,7 +83,7 @@ export default function PersonCard({
     personId: null,
     loading: false,
   });
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [ setSearchParams] = useSearchParams();
   const [applyChanges, { isLoading }] = useApplyPersonChangesMutation();
   const [rejectChanges] = useRejectPersonChangesMutation();
   const [updatePersonLock] = useUpdatePersonLockMutation();
