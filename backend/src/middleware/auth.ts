@@ -51,7 +51,6 @@ export const assignSuperAdminRole = (
   next: NextFunction,
 ) => {
   const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
-
   const adminEmailsRaw = process.env.SUPER_ADMIN_EMAILS || "";
   const adminEmails = adminEmailsRaw
     .split(",")

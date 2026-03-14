@@ -55,6 +55,7 @@ export default function FamilyViewPage({
     setSearchQuery("");
   };
   console.log("personId :", personId);
+  console.log("userId :", userId);
   const {
     data: baseFamily,
     isLoading: isLoadingBase,
@@ -310,7 +311,7 @@ export default function FamilyViewPage({
         </Group>
       </div>
 
-      <ScrollArea style={{ height: "calc(100vh - 120px)", width: "100%" }}>
+      <ScrollArea style={{ height: "calc(100vh - 20px)", width: "100%" }}>
         {/* РОДИТЕЛИ (из текущей версии) */}
 
         {/* ПЕРСОНА */}

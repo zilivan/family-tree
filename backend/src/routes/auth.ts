@@ -239,16 +239,41 @@ router.post("/register", assignSuperAdminRole, async (req, res) => {
 
     // ❌ Создаём PENDING-запрос
 
+    const personStatus = isSuperAdmin ? "CONFIRMED" : "PENDING";
+    const personBranch = isSuperAdmin ? "base" : "edit";
+
     const pendingPerson = await prisma.person.create({
       data: {
         ...newPerson,
-        branch: "edit",
-        status: "PENDING",
+        branch: personBranch,
+        status: personStatus,
       },
     });
 
     if (newPerson.gender && spouseIds && spouseIds.length > 0) {
       createMarriages(pendingPerson.id, spouseIds, newPerson.gender);
+    }
+    if (isSuperAdmin) {
+      const user = await prisma.user.create({
+        data: {
+          email: lowCaseEmail,
+          personId: pendingPerson.id,
+          isSuperAdmin,
+          isAdmin,
+        },
+      });
+
+      const code = crypto.randomInt(100000, 999999).toString();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { verificationCode: code },
+      });
+
+      await sendVerificationCode(email, code);
+      return res.json({
+        message: "Код отправлен на email",
+        status: "CONFIRMED",
+      });
     }
 
     await prisma.pendingRegistration.create({
