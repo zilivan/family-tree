@@ -79,6 +79,7 @@ const Index = () => {
           isAnonymous={isAnonymous}
           isBlocked={isBlocked}
           userId={userId}
+          autoLogout={handleLogout}
         />
       </div>
     </MantineProvider>

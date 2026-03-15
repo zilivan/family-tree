@@ -1,6 +1,6 @@
 // src/pages/FamilyViewPage.tsx
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   Stack,
   Group,
@@ -25,14 +25,16 @@ interface FamilyViewPageProps {
   isAnonymous: boolean;
   isBlocked: boolean;
   userId: string;
+  autoLogout:() => void;
 }
 
 export default function FamilyViewPage({
   isAnonymous = false,
   isBlocked = false,
   userId,
+  autoLogout,
 }: FamilyViewPageProps) {
-  const navigate = useNavigate();
+  
   const [searchParams, setSearchParams] = useSearchParams();
   const branch = searchParams.get("branch") || "base";
   const isMobile = useMediaQuery("(max-width: 599px)");
@@ -88,14 +90,12 @@ export default function FamilyViewPage({
 
   const refetchAll = (deletePersonId?: string) => {
     if (deletePersonId === userId) {
-      console.log("самоудаление юзера")
-      setSearchParams({ personId: "" });
-      navigate("/login");
+       autoLogout()
     } else if (deletePersonId === personId) {
-       console.log("удаление персоны редактируемой")
+    
       setSearchParams({ personId: userId });
     }
-     console.log("удаление персоны простой")
+     
     refetchEditFamily();
     refetchBaseFamily();
   };
