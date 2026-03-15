@@ -90,6 +90,7 @@ export default function FamilyViewPage({
 
   const refetchAll = (deletePersonId?: string) => {
     if (deletePersonId === userId) {
+      console.log("самоудалился")
        autoLogout()
        return;
     } 
