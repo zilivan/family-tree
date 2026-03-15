@@ -326,6 +326,44 @@ router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
   const { userId } = req.params;
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        person: {
+          include: {
+            childrenAsFather: true,
+            childrenAsMother: true,
+            marriagesAsHusband: true,
+            marriagesAsWife: true,
+          },
+        },
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+    if (user.person) {
+      const hasChildren =
+        user.person.childrenAsFather.length > 0 ||
+        user.person.childrenAsMother.length > 0;
+
+      const hasSpouses =
+        user.person.marriagesAsHusband.length > 0 ||
+        user.person.marriagesAsWife.length > 0;
+
+      // 🔹 Блокируем удаление, если есть связи
+      if (hasChildren || hasSpouses) {
+        const errors = [];
+        if (hasChildren) errors.push("есть дети");
+        if (hasSpouses) errors.push("есть супруги");
+
+        return res.status(400).json({
+          error: `Невозможно удалить пользователя: у привязанной персоны ${errors.join(" и ")}`,
+          personId: user.person.id,
+        });
+      }
+    }
+
     // Удаляем связанные данные (опционально)
     await prisma.person.deleteMany({
       where: { userId },
@@ -335,8 +373,8 @@ router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
       where: { id: userId },
     });
     res.json({ success: true });
-  } catch (error) {
-    console.error("Ошибка удаления пользователя:", error);
+  } catch {
+    //console.error("Ошибка удаления пользователя:", error);
     res.status(500).json({ error: "Не удалось удалить пользователя" });
   }
 });

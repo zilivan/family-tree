@@ -460,6 +460,7 @@ router.delete("/:id", authorizeSuperAdmin, async (req, res) => {
     const person = await prisma.person.findUnique({
       where: { id },
       include: {
+        user: true,
         childrenAsFather: true,
         childrenAsMother: true,
         marriagesAsHusband: true,
@@ -489,7 +490,12 @@ router.delete("/:id", authorizeSuperAdmin, async (req, res) => {
         error: `Невозможно удалить персону: ${errors.join(" и ")}`,
       });
     }
-
+    if (person.user) {
+      await prisma.user.delete({
+        where: { id: person.user.id },
+      });
+      //console.log(`🗑️ Удалён пользователь ${person.user.email} (привязан к персоне ${id})`);
+    }
     // Удаляем персону
     await prisma.person.delete({
       where: { id },

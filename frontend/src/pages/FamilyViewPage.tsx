@@ -87,12 +87,14 @@ export default function FamilyViewPage({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const refetchAll = (deletePersonId?: string) => {
-    if (deletePersonId === personId) {
-      setSearchParams({ personId: userId });
-    }
     if (deletePersonId === userId) {
       navigate("/");
     }
+
+    if (deletePersonId === personId) {
+      setSearchParams({ personId: userId });
+    }
+    
 
     refetchEditFamily();
     refetchBaseFamily();
