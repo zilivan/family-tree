@@ -289,7 +289,7 @@ export default function AdminPanelPage({
           <Tabs.Panel value="users" pt="xs">
             {isLoadingUsers ? (
               <Text>Загрузка пользователей...</Text>
-            ) : users.length >= 0 ? (
+            ) : users.length === 0 ? (
               <Text>Нет зарегистрированных пользователей</Text>
             ) : (
               <Stack>
@@ -298,10 +298,12 @@ export default function AdminPanelPage({
                     <Group>
                       <IconUser />
                       <div>
+{/*}
                         <Text fw={400}>
                          {user.fullName.lastName} {user.fullName.firstName}{" "}
                           {user.fullName.patronymic || ""}
                         </Text>
+     */}
                         <Text size="sm" c="dimmed">
                           {user.email} {user.isAdmin && "• Админ"}
                           {user.isSuperAdmin
