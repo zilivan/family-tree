@@ -36,6 +36,7 @@ import {
   useToggleUserAdminMutation,
   useDeleteUserMutation,
 } from "../api/adminApi";
+import type {EditPerson} from "../api/adminApi";
 
 interface AdminPanelPageProps {
   isSuperAdmin: boolean;
@@ -157,6 +158,13 @@ export default function AdminPanelPage({
       navigate("/");
     }
   };
+const formatFullName = (person: EditPerson | null): string => {
+  if (!person) return "";
+  return [person.lastName, person.firstName, person.patronymic]
+    .filter(Boolean)  // Убираем пустые значения
+    .join(" ");
+};
+
 
   return (
     <>
@@ -252,8 +260,7 @@ export default function AdminPanelPage({
                     <Group justify="space-between">
                       <div>
                         <Text fw={600}>
-                          {person.lastName} {person.firstName}{" "}
-                          {person.patronymic || ""}
+                          {formatFullName(person)}
                         </Text>
                         <Text size="sm" c="dimmed">
                           Создал: {person.creator?.email || "Неизвестно"}
