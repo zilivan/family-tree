@@ -1,6 +1,6 @@
 // src/pages/FamilyViewPage.tsx
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Stack,
   Group,
@@ -20,7 +20,6 @@ import { FamilyView } from "../components/FamilyView";
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetFamilyQuery } from "../api/personsApi";
 import type { Person } from "../types/index";
-import { useAuth } from "../contexts/useAuth";
 
 interface FamilyViewPageProps {
   isAnonymous: boolean;
@@ -33,14 +32,15 @@ export default function FamilyViewPage({
   isBlocked = false,
   userId,
 }: FamilyViewPageProps) {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const branch = searchParams.get("branch") || "base";
   const isMobile = useMediaQuery("(max-width: 599px)");
-  const { user } = useAuth();
+
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
-  const personId = searchParams.get("personId") || user?.personId;
+  const personId = searchParams.get("personId") || userId;
 
   let isSpouses = false;
 
@@ -85,7 +85,14 @@ export default function FamilyViewPage({
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const refetchAll = () => {
+  const refetchAll = (deletePersonId?: string) => {
+    if (deletePersonId === personId) {
+      setSearchParams({ personId: userId });
+    }
+    if (deletePersonId === userId) {
+      navigate("/");
+    }
+
     refetchEditFamily();
     refetchBaseFamily();
   };
@@ -336,9 +343,8 @@ export default function FamilyViewPage({
             }}
           >
             <PersonCard
-              userId={userId}
               person={currentPerson}
-              refetchAll={refetchAll}
+              refetchAll={(personId) => refetchAll(personId)}
               onSuccess={(success) => setSuccess(success)}
               setError={(error) => setError(error)}
               typePerson="parent"
@@ -361,10 +367,9 @@ export default function FamilyViewPage({
             {/* ПЕРСОНА   В РЕДАКТОРЕ */}
             {branch === "edit" && currentEditPerson && (
               <PersonCard
-                userId={userId}
                 person={currentEditPerson}
                 currentPersonPhoto={currentPerson.photos}
-                refetchAll={refetchAll}
+                refetchAll={(personId) => refetchAll(personId)}
                 onSuccess={(success) => setSuccess(success)}
                 setError={(error) => setError(error)}
                 isEditCard={true}
@@ -391,11 +396,10 @@ export default function FamilyViewPage({
             {/* СУПРУГИ */}
             {currentSpoused && (
               <PersonCard
-                userId={userId}
                 person={currentSpoused}
                 onSuccess={(success) => setSuccess(success)}
                 setError={(error) => setError(error)}
-                refetchAll={refetchAll}
+                refetchAll={(personId) => refetchAll(personId)}
                 handleNavigateUp={() =>
                   handleNavigateTo(
                     currentSpoused.fatherId,
@@ -430,11 +434,10 @@ export default function FamilyViewPage({
                 }}
               >
                 <PersonCard
-                  userId={userId}
                   person={child}
                   onSuccess={(success) => setSuccess(success)}
                   setError={(error) => setError(error)}
-                  refetchAll={refetchAll}
+                  refetchAll={(personId) => refetchAll(personId)}
                   typePerson="child"
                   isMobile={isMobile}
                   openModalFormat={(value, personId) =>

@@ -3,7 +3,6 @@ import {
   useApplyPersonChangesMutation,
   useRejectPersonChangesMutation,
 } from "../../api/adminApi";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useUpdatePersonLockMutation,
   useDeletePersonMutation,
@@ -34,13 +33,12 @@ import {
 import type { Person, Photo } from "../../types";
 
 interface PersonCardProps {
-  userId: string;
   person: Person;
   currentPersonPhoto?: Photo[];
   isSpouses?: boolean;
   isEditCard?: boolean;
   isMainEditCard?: boolean;
-  refetchAll: () => void;
+  refetchAll: (personId?: string) => void;
   onSuccess: (success: string) => void;
   setError: (errord: string) => void;
   handleNavigateUp?: () => void;
@@ -54,7 +52,6 @@ interface PersonCardProps {
 }
 
 export default function PersonCard({
-  userId,
   person,
   currentPersonPhoto,
   isSpouses = false,
@@ -73,7 +70,7 @@ export default function PersonCard({
   branch,
 }: PersonCardProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+
   const [confirmDelete, setConfirmDelete] = useState<{
     isOpen: boolean;
     personId: string | null;
@@ -83,7 +80,7 @@ export default function PersonCard({
     personId: null,
     loading: false,
   });
-  const [ setSearchParams] = useSearchParams();
+
   const [applyChanges, { isLoading }] = useApplyPersonChangesMutation();
   const [rejectChanges] = useRejectPersonChangesMutation();
   const [updatePersonLock] = useUpdatePersonLockMutation();
@@ -195,7 +192,6 @@ export default function PersonCard({
     if (!person?.id) return;
 
     try {
-      // Предполагается, что у вас есть мутация для обновления isLocked
       await updatePersonLock({
         personId: person.id,
         isLocked: newLockedState,
@@ -206,16 +202,12 @@ export default function PersonCard({
       refetchAll();
     }
   };
-  const handleDeletePerson = async (personId: string, personUserId: string) => {
+  const handleDeletePerson = async (personId: string) => {
     setConfirmDelete({
       isOpen: true,
       personId,
       loading: false,
     });
-    setSearchParams(userId);
-    if (personUserId === userId) {
-      navigate("/");
-    }
   };
 
   const handleConfirmDelete = async () => {
@@ -230,7 +222,7 @@ export default function PersonCard({
     } catch {
       setError("Не удалось удалить персону");
     } finally {
-      refetchAll();
+      refetchAll(confirmDelete.personId);
       setConfirmDelete({ isOpen: false, personId: null, loading: false });
     }
   };
@@ -436,9 +428,7 @@ export default function PersonCard({
                 size="xs"
                 variant="light"
                 color="red"
-                onClick={() =>
-                  handleDeletePerson(person.id, person.userId ?? "")
-                }
+                onClick={() => handleDeletePerson(person.id)}
                 mt="sm"
               >
                 Удалить персону
