@@ -289,7 +289,7 @@ export default function AdminPanelPage({
           <Tabs.Panel value="users" pt="xs">
             {isLoadingUsers ? (
               <Text>Загрузка пользователей...</Text>
-            ) : users.length === 0 ? (
+            ) : users.length >= 0 ? (
               <Text>Нет зарегистрированных пользователей</Text>
             ) : (
               <Stack>
