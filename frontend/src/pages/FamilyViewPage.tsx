@@ -88,13 +88,11 @@ export default function FamilyViewPage({
 
   const refetchAll = (deletePersonId?: string) => {
     if (deletePersonId === userId) {
-      navigate("/");
-    }
-
-    if (deletePersonId === personId) {
+      setSearchParams({ personId: "" });
+      navigate("/login");
+    } else if (deletePersonId === personId) {
       setSearchParams({ personId: userId });
     }
-    
 
     refetchEditFamily();
     refetchBaseFamily();

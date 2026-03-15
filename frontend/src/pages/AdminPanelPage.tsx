@@ -297,11 +297,14 @@ export default function AdminPanelPage({
                     <Group>
                       <IconUser />
                       <div>
-                        {(user.fullName) ? <Text fw={400}>
-                          {user.fullName.lastName} {user.fullName.firstName}{" "}
-                          {user.fullName.patronymic || ""}
-                        </Text> : <Text fw={400}>Персона удалена</Text> } 
-                        
+                        {user.fullName ? (
+                          <Text fw={400}>
+                            {user.fullName.lastName} {user.fullName.firstName}{" "}
+                            {user.fullName.patronymic || ""}
+                          </Text>
+                        ) : (
+                          <Text fw={400}>Персона удалена</Text>
+                        )}
 
                         <Text size="sm" c="dimmed">
                           {user.email} {user.isAdmin && "• Админ"}
