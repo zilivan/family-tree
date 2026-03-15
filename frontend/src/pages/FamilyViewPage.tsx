@@ -88,12 +88,14 @@ export default function FamilyViewPage({
 
   const refetchAll = (deletePersonId?: string) => {
     if (deletePersonId === userId) {
+      console.log("самоудаление юзера")
       setSearchParams({ personId: "" });
       navigate("/login");
     } else if (deletePersonId === personId) {
+       console.log("удаление персоны редактируемой")
       setSearchParams({ personId: userId });
     }
-
+     console.log("удаление персоны простой")
     refetchEditFamily();
     refetchBaseFamily();
   };
