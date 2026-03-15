@@ -91,7 +91,9 @@ export default function FamilyViewPage({
   const refetchAll = (deletePersonId?: string) => {
     if (deletePersonId === userId) {
        autoLogout()
-    } else if (deletePersonId === personId) {
+       return;
+    } 
+    if (deletePersonId === personId) {
     
       setSearchParams({ personId: userId });
     }
