@@ -16,7 +16,7 @@ import PersonCard from "../components/person/PersonCard";
 import { PersonSearchSelect } from "../components/form/PersonSearchSelect";
 import { PersonForm } from "../components/form/PersonForm";
 import { FamilyView } from "../components/FamilyView";
-import { useAuth } from "../contexts/useAuth";
+
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetFamilyQuery } from "../api/personsApi";
 import type { Person } from "../types/index";
@@ -36,11 +36,11 @@ export default function FamilyViewPage({
   const [searchParams, setSearchParams] = useSearchParams();
   const branch = searchParams.get("branch") || "base";
   const isMobile = useMediaQuery("(max-width: 599px)");
- const { user } = useAuth();
+
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
-  const personId = searchParams.get("personId") || user?.personId;
+  const personId = searchParams.get("personId") || userId;
 
   let isSpouses = false;
 
@@ -56,7 +56,7 @@ export default function FamilyViewPage({
   };
   console.log("personId :", personId);
   console.log("userId :", userId);
-  console.log("user :",  user);
+
   const {
     data: baseFamily,
     isLoading: isLoadingBase,

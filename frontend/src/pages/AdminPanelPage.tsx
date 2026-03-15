@@ -158,7 +158,6 @@ export default function AdminPanelPage({
     }
   };
 
-
   return (
     <>
       <Container size="lg" py="xl">
@@ -201,7 +200,7 @@ export default function AdminPanelPage({
                     <Group justify="space-between">
                       <div>
                         <Text fw={600}>
-                           {person.lastName} {person.firstName}{" "}
+                          {person.lastName} {person.firstName}{" "}
                           {person.patronymic || ""}
                         </Text>
                         <Text size="sm" c="dimmed">
@@ -298,12 +297,6 @@ export default function AdminPanelPage({
                     <Group>
                       <IconUser />
                       <div>
-{/*}
-                        <Text fw={400}>
-                         {user.fullName.lastName} {user.fullName.firstName}{" "}
-                          {user.fullName.patronymic || ""}
-                        </Text>
-     */}
                         <Text size="sm" c="dimmed">
                           {user.email} {user.isAdmin && "• Админ"}
                           {user.isSuperAdmin

@@ -27,7 +27,6 @@ const Index = () => {
     navigate("/main");
   };
 
-  
   const isSuperAdmin = user?.isSuperAdmin === true ? true : false;
   const isAnonymous = user?.id === "anonymous";
   const isBlocked = user?.isBlocked === true;
