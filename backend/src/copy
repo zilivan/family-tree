@@ -1,0 +1,209 @@
+// backend/src/routes/persons.ts
+import { Router } from 'express';
+import prisma from '../db';
+import { authenticateToken, authenticateAdmin } from '../middleware/auth';
+import { z } from 'zod';
+import { Prisma } from '@prisma/client'; // <-- Теперь можно использовать типы Prisma
+
+const router = Router();
+
+// --- Валидационные схемы Zod ---
+const createPersonSchema = z.object({
+  firstName: z.string().min(1, "Имя обязательно"),
+  lastName: z.string().min(1, "Фамилия обязательна"),
+  birthDate: z.string().datetime().optional().nullable(),
+  deathDate: z.string().datetime().optional().nullable(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  phone: z.string().optional().nullable(),
+  photoUrl: z.string().url().optional().nullable(),
+  parentId: z.string().optional().nullable(), // ID родителя (если есть)
+});
+
+const updatePersonSchema = z.object({
+  firstName: z.string().min(1, "Имя обязательно").optional(),
+  lastName: z.string().min(1, "Фамилия обязательна").optional(),
+  birthDate: z.string().datetime().optional().nullable(),
+  deathDate: z.string().datetime().optional().nullable(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  phone: z.string().optional().nullable(),
+  photoUrl: z.string().url().optional().nullable(),
+  parentId: z.string().optional().nullable(),
+});
+
+// --- Получить всех персон ---
+router.get('/', async (req, res) => {
+  try {
+    const persons = await prisma.person.findMany({
+      include: {
+        parent: true, // Включить информацию о родителе
+        children: true, // Включить информацию о детях
+        marriages: {
+          include: {
+            husband: true,
+            wife: true,
+          },
+        },
+      },
+    });
+    res.json(persons);
+  } catch (error) {
+    console.error('Ошибка при получении персон:', error);
+    res.status(500).json({ error: 'Failed to fetch persons' });
+  }
+});
+
+// --- Получить персону по ID ---
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const person = await prisma.person.findUnique({
+      where: { id },
+      include: {
+        parent: true,
+        children: true,
+        marriages: {
+          include: {
+            husband: true,
+            wife: true,
+          },
+        },
+      },
+    });
+
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found' });
+    }
+
+    res.json(person);
+  } catch (error) {
+    console.error('Ошибка при получении персоны:', error);
+    res.status(500).json({ error: 'Failed to fetch person' });
+  }
+});
+
+// --- Создать новую персону (только авторизованный пользователь) ---
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const validatedData = createPersonSchema.parse(req.body);
+
+    const newPerson = await prisma.person.create({
+      data: { // <-- Добавьте `data:`
+        ...validatedData,
+        birthDate: validatedData.birthDate ? new Date(validatedData.birthDate) : null,
+        deathDate: validatedData.deathDate ? new Date(validatedData.deathDate) : null,
+        // parentId может быть null, что допустимо
+      },
+    });
+
+    res.status(201).json(newPerson);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation failed', details: error.errors });
+    }
+    console.error('Ошибка при создании персоны:', error);
+    res.status(500).json({ error: 'Failed to create person' });
+  }
+});
+
+// --- Обновить персону (только авторизованный пользователь) ---
+router.put('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const validatedData = updatePersonSchema.parse(req.body);
+
+    // Подготовим объект данных для обновления, типизированный как Prisma
+    const updateData: any = {}; // <-- Временно any
+
+    // ... (обработка данных как в предыдущем шаге) ...
+
+    const updatedPerson = await prisma.person.update({
+      where: { id },
+       { ...updateData },
+    });
+
+    res.json(updatedPerson);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation failed', details: error.errors });
+    }
+    console.error('Ошибка при обновлении персоны:', error);
+    res.status(500).json({ error: 'Failed to update person' });
+  }
+});
+
+
+// --- Удалить персону (только администратор) ---
+router.delete('/:id', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Проверим, есть ли у персоны дети
+    const personWithChildren = await prisma.person.findUnique({
+      where: { id },
+      include: { children: true },
+    });
+
+    if (personWithChildren && personWithChildren.children.length > 0) {
+      return res.status(400).json({ error: 'Cannot delete person with children' });
+    }
+
+    await prisma.person.delete({
+      where: { id },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Ошибка при удалении персоны:', error);
+    res.status(500).json({ error: 'Failed to delete person' });
+  }
+});
+
+export default router;
+
+
+
+
+
+ let husband = null;
+    let wife = null;
+
+    if (marriagesAsHusband.length > 0) wife = marriagesAsHusband[0].wife;
+    if (marriagesAsWife.length > 0) husband = marriagesAsWife[0].husband;
+// ДОБАВЛЯЕМ ДЕТЕЙ СУПРУГАМ
+    if (husband) {
+      const husbandChildrenAsFather = await prisma.person.findMany({
+        where: { fatherId: husband.id, branch: branch as string },
+        include: { photos: true },
+      });
+      const husbandChildrenAsMother = await prisma.person.findMany({
+        where: { motherId: husband.id, branch: branch as string },
+        include: { photos: true },
+      });
+      
+      // Добавляем детей в объект husband
+      husband = {
+        ...husband,
+        childrenAsFather: husbandChildrenAsFather,
+        childrenAsMother: husbandChildrenAsMother,
+      };
+    }
+
+    if (wife) {
+      const wifeChildrenAsFather = await prisma.person.findMany({
+        where: { fatherId: wife.id, branch: branch as string },
+        include: { photos: true },
+      });
+      const wifeChildrenAsMother = await prisma.person.findMany({
+        where: { motherId: wife.id, branch: branch as string },
+        include: { photos: true },
+      });
+      
+      // Добавляем детей в объект wife
+      wife = {
+        ...wife,
+        childrenAsFather: wifeChildrenAsFather,
+        childrenAsMother: wifeChildrenAsMother,
+      };
+    }
