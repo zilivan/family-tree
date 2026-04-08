@@ -8,7 +8,6 @@ import {
   List,
   ThemeIcon,
   Divider,
-  Badge,
   Button,
 } from "@mantine/core";
 import {
@@ -17,12 +16,9 @@ import {
   IconUser,
   IconAlertTriangle,
   IconMail,
-  IconCalendar,
 } from "@tabler/icons-react";
 
 export function PrivacyPolicyPage() {
-  const lastUpdated = "07.03.2026";
-  const version = "1.0.0";
   const navigate = useNavigate();
   const handleOut = () => {
     navigate(-1);
