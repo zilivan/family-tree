@@ -80,7 +80,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ currentUser }) => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat/messages`);
+      const response = await fetch(`${API_BASE_URL}/chat/messages`);
       if (!response.ok) throw new Error("Ошибка загрузки сообщений");
       const data = await response.json();
       setMessages(data);
@@ -99,7 +99,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ currentUser }) => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat/messages`, {
+      const response = await fetch(`${API_BASE_URL}/chat/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

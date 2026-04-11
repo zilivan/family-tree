@@ -27,7 +27,7 @@ export interface EditPerson extends Person {
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_BASE_URL}/api`,
+    baseUrl: `${API_BASE_URL}`,
     credentials: "include",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");

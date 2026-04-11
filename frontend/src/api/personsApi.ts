@@ -40,7 +40,7 @@ interface UploadPhotoResponse {
 export const personsApi = createApi({
   reducerPath: "personsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_BASE_URL}/api`,
+    baseUrl: `${API_BASE_URL}`,
     credentials: "include",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
