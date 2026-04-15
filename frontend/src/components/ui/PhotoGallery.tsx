@@ -31,7 +31,7 @@ export default function PhotoGallery({
 
   const hasPhotos = photoObjects.length > 0;
   const handleDoubleClick = (url: string) => {
-    setFullscreenPhoto(url);
+    setFullscreenPhoto(getPhotoUrl(url));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
