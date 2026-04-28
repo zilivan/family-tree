@@ -19,18 +19,15 @@ const __dirname = dirname(__filename);
 // 🔹 1. ГЛОБАЛЬНЫЙ ЛОГГЕР (самый первый!)
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  console.log(
-    `\n📥 [${new Date().toISOString()}] ${req.method} ${req.originalUrl}`,
-  );
-  console.log(`📥 Origin: "${req.headers.origin || "NOT SET"}"`);
-  console.log(`📥 Headers: ${JSON.stringify(req.headers, null, 2)}`);
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    console.log(`📤 Status: ${res.statusCode} | Duration: ${duration}ms`);
-    console.log(
-      `📤 CORS Header: "${res.getHeader("access-control-allow-origin") || "NOT SET"}"`,
-    );
+    // Логируем только ошибки и медленные запросы
+    if (res.statusCode >= 400 || duration > 1000) {
+      console.log(
+        `⚠️ ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`,
+      );
+    }
   });
 
   next();
@@ -51,17 +48,13 @@ const ALLOWED_ORIGINS = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Разрешить запросы без origin (curl, postman, мобильные)
-      if (!origin) {
-        console.log("✅ CORS: запрос без origin (разрешено)");
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
       if (ALLOWED_ORIGINS.includes(origin)) {
-        console.log(`✅ CORS разрешён для: ${origin}`);
+        // console.log(`✅ CORS разрешён для: ${origin}`); // ← закомментировано
         callback(null, true);
       } else {
-        console.warn(`❌ CORS ЗАБЛОКИРОВАН для: ${origin}`);
+        console.warn(`❌ CORS ЗАБЛОКИРОВАН для: ${origin}`); // ← оставить только предупреждения
         callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },

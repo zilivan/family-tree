@@ -43,14 +43,6 @@ export const authApi = createApi({
       }),
     }),
 
-    sendAdminCode: builder.mutation<AuthResponse, { code: string }>({
-      query: (body) => ({
-        url: "/auth/admin-pass",
-        method: "POST",
-        body,
-      }),
-    }),
-
     verifyCode: builder.mutation<AuthResponse, VerifyCodeRequest>({
       query: (body) => ({
         url: "/auth/verify-code",
@@ -65,5 +57,4 @@ export const {
   useRequestCodeMutation,
   useVerifyCodeMutation,
   useAnonymCodeMutation,
-  useSendAdminCodeMutation,
 } = authApi;

@@ -3,7 +3,8 @@ import { prisma } from "../lib/prisma.js";
 import { authenticateAdmin, authorizeSuperAdmin } from "../middleware/auth.js";
 import { sendVerificationCode } from "../utils/email.js";
 import crypto from "crypto";
-
+import { tempCodeStore } from "../utils/tempCodeStore.js";
+import { formatTimeLeft } from "../utils/formatTimeLeft.js";
 import { console } from "inspector";
 import { applyMarriages } from "../utils/applyMarriages.js";
 
@@ -378,5 +379,60 @@ router.delete("/users/:userId", authorizeSuperAdmin, async (req, res) => {
     res.status(500).json({ error: "Не удалось удалить пользователя" });
   }
 });
+router.post("/code/generate", authenticateAdmin, (req, res) => {
+  try {
+    const { durationDays } = req.body;
+
+    if (![1, 2, 3].includes(durationDays)) {
+      return res.status(400).json({ error: "Срок: 1, 2 или 3 дня" });
+    }
+
+    const codeData = tempCodeStore.generate(durationDays as 1 | 2 | 3);
+
+    res.json({
+      success: true,
+      code: codeData.code,
+      expiresAt: new Date(codeData.expiresAt).toISOString(),
+      durationDays: codeData.durationDays,
+      timeLeft: formatTimeLeft(codeData.expiresAt),
+      message: `Код ${codeData.code} действителен до ${new Date(codeData.expiresAt).toLocaleString("ru-RU")}`,
+    });
+  } catch (error) {
+    console.error("Ошибка генерации кода:", error);
+    res.status(500).json({ error: "Не удалось создать код" });
+  }
+});
+
+router.get(
+  "/code/status",
+  authenticateAdmin,
+
+  (req, res) => {
+    const codeData = tempCodeStore.getActive();
+
+    if (!codeData) {
+      return res.json({ active: false });
+    }
+
+    res.json({
+      active: true,
+      code: codeData.code,
+      expiresAt: new Date(codeData.expiresAt).toISOString(),
+      durationDays: codeData.durationDays,
+      timeLeft: formatTimeLeft(codeData.expiresAt),
+      isExpired: codeData.expiresAt <= Date.now(),
+    });
+  },
+);
+
+router.delete(
+  "/code/delete",
+  authenticateAdmin,
+
+  (req, res) => {
+    tempCodeStore.clear();
+    res.json({ success: true, message: "Код отозван" });
+  },
+);
 
 export default router;

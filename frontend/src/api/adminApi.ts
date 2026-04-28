@@ -17,11 +17,20 @@ export interface PendingPerson {
   pendingRegistration: {
     email: string;
   } | null;
-  createdAt: string;
+  createdAt: string | null;
 }
 
 export interface EditPerson extends Person {
   creator: { email: string } | null;
+}
+export interface CodeGenerated {
+  success: boolean;
+  active: boolean;
+  code: number | null;
+  expiresAt: Date | null;
+  durationDays: number | null;
+  timeLeft: Date | null;
+  message: string;
 }
 
 export const adminApi = createApi({
@@ -35,7 +44,7 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["PendingPersons", "EditPersons", "GetUsers"],
+  tagTypes: ["PendingPersons", "EditPersons", "GetUsers", "CodeStatus"],
 
   endpoints: (builder) => ({
     getPendingPersons: builder.query<PendingPerson[], void>({
@@ -49,6 +58,10 @@ export const adminApi = createApi({
     getUsers: builder.query<AdminUser[], void>({
       query: () => "/admin/users",
       providesTags: ["GetUsers"],
+    }),
+    getStatusCode: builder.query<CodeGenerated, void>({
+      query: () => "/admin/code/status",
+      providesTags: ["CodeStatus"],
     }),
 
     applyPersonChanges: builder.mutation<void, string>({
@@ -108,6 +121,25 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["GetUsers"],
     }),
+
+    generateCode: builder.mutation<CodeGenerated, number>({
+      query: (durationDays) => ({
+        url: `/admin/code/generate`,
+        method: "POST",
+        body: { durationDays },
+      }),
+      invalidatesTags: ["CodeStatus"],
+    }),
+    deleteCode: builder.mutation<
+      { success: boolean; message: string },
+      undefined
+    >({
+      query: () => ({
+        url: `/admin/code/delete`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["CodeStatus"],
+    }),
   }),
 });
 
@@ -117,8 +149,11 @@ export const {
   useApplyPersonChangesMutation,
   useGetUsersQuery,
   useGetEditPersonsQuery,
+  useGetStatusCodeQuery,
   useRejectPersonChangesMutation,
   useToggleUserBlockMutation,
   useToggleUserAdminMutation,
   useDeleteUserMutation,
+  useDeleteCodeMutation,
+  useGenerateCodeMutation,
 } = adminApi;

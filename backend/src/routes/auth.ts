@@ -8,6 +8,8 @@ import { assignSuperAdminRole } from "../middleware/auth.js";
 import { z } from "zod";
 import { createMarriages } from "../utils/createMarriages.js";
 import { dateSchema } from "./persons.js";
+import { tempCodeStore } from "../utils/tempCodeStore.js";
+import { formatTimeLeft } from "../utils/formatTimeLeft.js";
 // --- Валидационные схемы Zod ---
 const createPersonSchema = z.object({
   firstName: z.string().min(1),
@@ -160,32 +162,39 @@ router.post("/verify-code", async (req, res) => {
   });
 });
 
-// --- Вход администратора ---
-router.post("/admin-pass", (req, res) => {
-  const adminCode = req.body;
-  const token = generateToken("admin", true);
-  if (adminCode.code === process.env.ADMIN_CODE) {
-    res.json({ token, user: { id: "admin", isAdmin: true } });
-  }
-  if (adminCode.code === process.env.SUPER_ADMIN_CODE) {
-    res.json({ token, user: { id: "admin", isSuperAdmin: true } });
-  }
-
-  res.status(403).json({ error: "Неверный админ-код" });
-});
-
 // --- Вход ВРЕМЕННЫЙ ---
 router.post("/anonymous", (req, res) => {
-  const anonymousCode = req.body;
-  if (anonymousCode.code !== "1111") {
-    return res.status(403).json({ error: "Неверный код" });
+  const anonymousCode: { code: string } = req.body;
+  if (!anonymousCode) {
+    return res.status(400).json({ error: "Код не указан" });
   }
 
-  const token = generateToken("anonymous");
-  res.json({
-    token,
-    user: { id: "anonymous", isAdmin: false, isAnonymous: true },
-  });
+  const tempCodeData = tempCodeStore.verify(anonymousCode);
+
+  if (tempCodeData) {
+    const token = generateToken("anonymous");
+
+    return res.json({
+      token,
+      user: {
+        id: `temp-${Date.now()}`,
+        isAdmin: false,
+        isAnonymous: true,
+        expiresAt: new Date(tempCodeData.expiresAt).toISOString(),
+      },
+      timeLeft: formatTimeLeft(tempCodeData.expiresAt),
+      message: `Вход выполнен. Доступ действителен до ${new Date(tempCodeData.expiresAt).toLocaleString("ru-RU")}`,
+    });
+  }
+
+  if (anonymousCode.code === process.env.ANONIM_CODE) {
+    const token = generateToken("anonymous");
+    res.json({
+      token,
+      user: { id: "anonymous", isAdmin: false, isAnonymous: true },
+    });
+  }
+  return res.status(403).json({ error: "Неверный код" });
 });
 
 // --- НОВАЯ РЕГИСТРАЦИЯ (ФИО + дата + email) ---

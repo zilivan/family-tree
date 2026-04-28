@@ -1,8 +1,9 @@
 // frontend/src/utils/photoUrl.ts
-const SERVER_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-//const SERVER_URL =  "http://localhost:3000";
+let SERVER_URL = import.meta.env.VITE_API_BASE_URL;
+if (import.meta.env.MODE === "development") {
+  SERVER_URL = "http://localhost:3000";
+}
 export const getPhotoUrl = (relativePath: string): string => {
-  // relativePath = "photos/a1b2c3.jpg"
   return `${SERVER_URL}/uploads/photos/${relativePath}`;
 };
 

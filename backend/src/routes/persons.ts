@@ -4,7 +4,9 @@ import { prisma } from "../lib/prisma.js";
 import { authenticateToken, authorizeSuperAdmin } from "../middleware/auth.js";
 import { z, ZodError } from "zod";
 import { createMarriages } from "../utils/createMarriages.js";
+import { attachPersonSafeName } from "../middleware/attachPersonSafeName.js";
 import { upload } from "../middleware/upload.js";
+import { deletePhoto } from "../middleware/deletePhoto.js";
 
 const router = Router();
 
@@ -637,6 +639,7 @@ router.patch("/:personId/lock", authorizeSuperAdmin, async (req, res) => {
 router.post(
   "/:id/photos",
   authenticateToken,
+  attachPersonSafeName,
   upload.single("photo"),
   async (req, res) => {
     try {
@@ -730,6 +733,50 @@ router.post(
     } catch {
       //console.error("Ошибка восстановления фото:", error);
       res.status(500).json({ error: "Не удалось восстановить фото" });
+    }
+  },
+);
+
+router.delete(
+  "/:personId/photos/:photoId/deletedFoto",
+  authenticateToken,
+  authorizeSuperAdmin,
+  deletePhoto,
+  async (req, res) => {
+    try {
+      const { personId, photoId } = req.params;
+
+      // 2. Удаляем запись из БД навсегда
+      await prisma.photo.delete({
+        where: {
+          id: photoId,
+          personId: personId,
+        },
+      });
+
+      // Опционально: используем метаданные из мидлвара для ответа
+      const meta = (req as any).deletedPhotoMeta;
+
+      res.json({
+        success: true,
+        message: "Фото полностью удалено (файл + запись в БД)",
+        deletedPhotoId: photoId,
+        deletedFilename: meta?.filename, // для лога/аудита
+      });
+    } catch (error: unknown) {
+      // Prisma error code P2025 = запись не найдена
+      if (error instanceof Error && (error as any).code === "P2025") {
+        return res.status(404).json({ error: "Запись в БД не найдена" });
+      }
+
+      console.error("💥 Ошибка при удалении записи из БД:", error);
+      res.status(500).json({
+        error: "Не удалось удалить запись из базы данных",
+        details:
+          process.env.NODE_ENV === "development"
+            ? (error as Error).message
+            : undefined,
+      });
     }
   },
 );

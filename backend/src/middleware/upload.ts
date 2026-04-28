@@ -34,15 +34,18 @@ const storage: StorageEngine = multer.diskStorage({
     const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
     const nameWithoutExt = path.basename(file.originalname, ext);
 
-    // Санитизация имени БЕЗ расширения
-    const cleanName = nameWithoutExt
-      .replace(/[^a-z0-9._-]/gi, "_")
-      .replace(/_{2,}/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .substring(0, 100);
+    // Берём подготовленное имя из мидлвара
+    const personName = (_req as any).personSafeName || "unknown";
+
+    // Формируем текущую дату в формате YYYY_MM_DD
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, "0")}_${String(now.getDate()).padStart(2, "0")}`;
+
+    // Короткий UUID для уникальности (первая часть)
+    const uniqueId = uuidv4().split("-")[0];
 
     // Формируем имя: UUID + очищенное имя + расширение
-    const filename = `${uuidv4()}_${cleanName}${ext}`;
+    const filename = `${personName}_${dateStr}_${uniqueId}${ext}`;
     cb(null, filename);
   },
 });

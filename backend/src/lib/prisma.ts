@@ -15,14 +15,13 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 
 export const prisma = new PrismaClient({
-  adapter, // ← Адаптер передаётся напрямую
+  adapter,
   log:
     process.env.NODE_ENV === "development"
       ? ["query", "error", "warn"]
       : ["error"],
 });
 
-// Грейсфул-шатдаун (только в продакшене)
 if (process.env.NODE_ENV === "production") {
   const shutdown = async (signal: string) => {
     console.log(`\nПолучен сигнал ${signal}, завершаем работу...`);

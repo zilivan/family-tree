@@ -12,6 +12,7 @@ interface PhotoGalleryProps {
   borderColor?: string;
   photoObjects?: Photo[]; // ← добавьте ID фото
   onPhotoRemove?: (photoId: string) => void;
+  onPhotoDelete?: (photoId: string) => void;
   onPhotoAdd?: (file: File) => void;
   onPhotoRestore?: (photoId: string) => void;
 }
@@ -22,6 +23,7 @@ export default function PhotoGallery({
   photoObjects = [],
   onPhotoAdd,
   onPhotoRemove,
+  onPhotoDelete,
   onPhotoRestore,
 }: PhotoGalleryProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -56,6 +58,12 @@ export default function PhotoGallery({
     e.stopPropagation();
     if (onPhotoRestore && photoObjects[index]) {
       onPhotoRestore(photoObjects[index].id);
+    }
+  };
+  const handleDelete = (index: number) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPhotoDelete && photoObjects[index]) {
+      onPhotoDelete(photoObjects[index].id);
     }
   };
 
@@ -138,8 +146,8 @@ export default function PhotoGallery({
                         position: "absolute",
                         top: "8px",
                         right: "8px",
-                        width: "24px",
-                        height: "24px",
+                        width: "70px",
+                        height: "30",
                         borderRadius: "50%",
                         background: "rgba(255, 255, 255, 0.8)",
                         border: "none",
@@ -151,11 +159,17 @@ export default function PhotoGallery({
                       }}
                       aria-label="Удалить фото"
                     >
-                      <span style={{ color: "#ff6b6b", fontSize: "20px" }}>
-                        Х
+                      <span
+                        style={{
+                          color: "#2d0787",
+                          fontSize: "18px",
+                        }}
+                      >
+                        скрыть
                       </span>
                     </button>
                   )}
+
                   {/* Кнопка восстановления для удалённых фото */}
                   {editable && onPhotoRestore && photo.isDeleted && (
                     <button
@@ -165,8 +179,8 @@ export default function PhotoGallery({
                         position: "absolute",
                         top: "8px",
                         right: "8px",
-                        width: "24px",
-                        height: "24px",
+                        width: "90px",
+                        height: "30",
                         borderRadius: "50%",
                         background: "rgba(255, 255, 255, 0.8)",
                         border: "none",
@@ -181,11 +195,43 @@ export default function PhotoGallery({
                       <span
                         style={{
                           color: "#4caf50",
-                          fontSize: "20px",
-                          fontWeight: "bold",
+                          fontSize: "18px",
                         }}
                       >
-                        ↻
+                        показать
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Кнопка для удаления фото */}
+                  {editable && (
+                    <button
+                      type="button"
+                      onClick={handleDelete(index)}
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        width: "90px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.8)",
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 0,
+                      }}
+                      aria-label="Восстановить фото"
+                    >
+                      <span
+                        style={{
+                          color: "#f20707",
+                          fontSize: "18px",
+                        }}
+                      >
+                        удалить
                       </span>
                     </button>
                   )}

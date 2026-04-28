@@ -35,6 +35,9 @@ import {
   useToggleUserBlockMutation,
   useToggleUserAdminMutation,
   useDeleteUserMutation,
+  useDeleteCodeMutation,
+  useGetStatusCodeQuery,
+  useGenerateCodeMutation,
 } from "../api/adminApi";
 import type { Error } from "../types/index";
 
@@ -51,6 +54,7 @@ export default function AdminPanelPage({
 }: AdminPanelPageProps) {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const [Days, setDays] = useState<number>(1);
 
   const [confirmDelete, setConfirmDelete] = useState<{
     isOpen: boolean;
@@ -79,6 +83,10 @@ export default function AdminPanelPage({
     isLoading: isLoadingEdit,
     refetch: refetchEdit,
   } = useGetEditPersonsQuery();
+
+  const { data: codeStatus, refetch: refetchCodeStatus } =
+    useGetStatusCodeQuery();
+
   const handleRefetchAll = () => {
     refetchPending();
     refetchUsers();
@@ -90,6 +98,8 @@ export default function AdminPanelPage({
 
   const [applyChanges] = useApplyPersonChangesMutation();
   const [rejectChanges] = useRejectPersonChangesMutation();
+  const [generateCode] = useGenerateCodeMutation();
+  const [deleteCode] = useDeleteCodeMutation();
 
   const [toggleBlock] = useToggleUserBlockMutation();
   const [toggleAdmin] = useToggleUserAdminMutation();
@@ -101,6 +111,27 @@ export default function AdminPanelPage({
     } catch {
       setError("Ошибка подтверждения");
     }
+  };
+  const handleGenerateCode = async (days: number) => {
+    try {
+      await generateCode(days).unwrap();
+
+      setSuccess("Код сгенерирован");
+    } catch {
+      setError("Ошибка генерации кода");
+    }
+    refetchCodeStatus();
+  };
+
+  const handleClearCode = async () => {
+    try {
+      await deleteCode(undefined).unwrap();
+
+      setSuccess("Код сброшен");
+    } catch {
+      setError("Ошибка сброса кода");
+    }
+    refetchCodeStatus();
   };
 
   const handleApply = async (personId: string) => {
@@ -171,6 +202,13 @@ export default function AdminPanelPage({
       setConfirmDelete({ isOpen: false, userId: null, loading: false });
     }
   };
+  const countDays = () => {
+    if (Days < 3) {
+      setDays((prev) => prev + 1);
+    } else {
+      setDays(1);
+    }
+  };
 
   return (
     <>
@@ -197,6 +235,9 @@ export default function AdminPanelPage({
             </Tabs.Tab>
             <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
               Пользователи ({users.length})
+            </Tabs.Tab>
+            <Tabs.Tab value="code" leftSection={<IconAlertCircle size={16} />}>
+              Код входа
             </Tabs.Tab>
           </Tabs.List>
 
@@ -405,6 +446,46 @@ export default function AdminPanelPage({
               {error}
             </Alert>
           )}
+          <Tabs.Panel value="code" pt="xs">
+            <Stack>
+              <Group justify="space-between">
+                <div>
+                  <Text fw={600}>Текущий код</Text>
+                  <Text size="sm" c="dimmed">
+                    {codeStatus?.code ?? "код не задан"}
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    действует{" "}
+                    {codeStatus?.timeLeft?.toLocaleString() ?? "нет кода"}
+                  </Text>
+                </div>
+                <Group>
+                  <Button
+                    leftSection={<IconCheck size={16} />}
+                    color="yellow"
+                    onClick={countDays}
+                  >
+                    дни {Days}
+                  </Button>
+                  <Button
+                    leftSection={<IconCheck size={16} />}
+                    onClick={() => {
+                      handleGenerateCode(Days);
+                    }}
+                  >
+                    Новый
+                  </Button>
+                  <Button
+                    leftSection={<IconCheck size={16} />}
+                    color="red"
+                    onClick={handleClearCode}
+                  >
+                    Сбросить
+                  </Button>
+                </Group>
+              </Group>
+            </Stack>
+          </Tabs.Panel>
         </Tabs>
       </Container>
       <ConfirmModal

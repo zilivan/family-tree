@@ -164,6 +164,14 @@ export const personsApi = createApi({
 
     deletePhoto: builder.mutation<void, { personId: string; photoId: string }>({
       query: ({ personId, photoId }) => ({
+        url: `/persons/${personId}/photos/${photoId}/deletedFoto`,
+        method: "DELETE",
+      }),
+
+      invalidatesTags: ["Persons"],
+    }),
+    closePhoto: builder.mutation<void, { personId: string; photoId: string }>({
+      query: ({ personId, photoId }) => ({
         url: `/persons/${personId}/photos/${photoId}`,
         method: "DELETE",
       }),
@@ -187,4 +195,5 @@ export const {
   useUpdatePersonLockMutation,
   useDeletePersonMutation,
   useDeleteAccountMutation,
+  useClosePhotoMutation,
 } = personsApi;

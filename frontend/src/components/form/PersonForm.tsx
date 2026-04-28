@@ -22,6 +22,7 @@ import {
   useUploadPhotoMutation,
   useDeletePhotoMutation,
   useRestorePhotoMutation,
+  useClosePhotoMutation,
 } from "../../api/personsApi";
 
 import type { CreatePersonInput } from "../../api/personsApi";
@@ -75,6 +76,7 @@ export function PersonForm({
   const [uploadPhoto] = useUploadPhotoMutation();
   const [deletePhoto] = useDeletePhotoMutation();
   const [restorePhoto] = useRestorePhotoMutation();
+  const [closePhoto] = useClosePhotoMutation();
 
   const photoObjects =
     existingPerson?.photos.map((p) => ({
@@ -151,6 +153,17 @@ export function PersonForm({
     if (!personId) return;
 
     try {
+      await closePhoto({ personId, photoId }).unwrap();
+      await refetch();
+    } catch (error) {
+      console.error("Ошибка удаления фото:", error);
+    }
+  };
+
+  const handlePhotoDelete = async (photoId: string) => {
+    if (!personId) return;
+
+    try {
       await deletePhoto({ personId, photoId }).unwrap();
       await refetch();
     } catch (error) {
@@ -162,7 +175,7 @@ export function PersonForm({
     if (!personId) return;
     try {
       await restorePhoto({ personId, photoId }).unwrap();
-      await refetch(); // обновить данные персоны
+      await refetch();
     } catch (error) {
       console.error("Ошибка восстановления фото:", error);
     }
@@ -330,6 +343,7 @@ export function PersonForm({
               }}
               onPhotoRemove={handlePhotoRemove}
               onPhotoRestore={handlePhotoRestore}
+              onPhotoDelete={handlePhotoDelete}
             />
           )}
 
